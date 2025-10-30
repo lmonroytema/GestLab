@@ -1,0 +1,744 @@
+// Inicialización cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTheme();
+    initializeNavigation();
+    initializeCounters();
+    initializeProgressCircles();
+    initializeScrollEffects();
+    
+    // Funciones de accesibilidad
+    improveAccessibility();
+    
+    console.log('SYSLAB Home Page initialized successfully');
+});
+
+// Gestión de temas
+function initializeTheme() {
+    // Verificar si hay un tema guardado en localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const themeToggle = document.getElementById('themeToggle');
+    
+    // Aplicar el tema guardado
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+    
+    // Agregar event listener al botón de cambio de tema
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    // Aplicar el nuevo tema
+    document.documentElement.setAttribute('data-theme', newTheme);
+    
+    // Guardar en localStorage
+    localStorage.setItem('theme', newTheme);
+    
+    // Actualizar el icono
+    updateThemeIcon(newTheme);
+    
+    // Agregar animación suave
+    document.body.style.transition = 'all 0.3s ease';
+    setTimeout(() => {
+        document.body.style.transition = '';
+    }, 300);
+}
+
+function updateThemeIcon(theme) {
+    const themeToggle = document.getElementById('themeToggle');
+    const icon = themeToggle?.querySelector('i');
+    
+    if (icon) {
+        if (theme === 'dark') {
+            icon.className = 'fas fa-sun';
+            themeToggle.title = 'Cambiar a tema claro';
+        } else {
+            icon.className = 'fas fa-moon';
+            themeToggle.title = 'Cambiar a tema oscuro';
+        }
+    }
+}
+
+// Funciones del menú móvil
+function toggleMobileMenu() {
+    const navMenu = document.getElementById('navMenu');
+    const mobileToggle = document.getElementById('mobileMenuToggle');
+    
+    if (navMenu && mobileToggle) {
+        navMenu.classList.toggle('active');
+        mobileToggle.classList.toggle('active');
+        
+        // Prevenir scroll del body cuando el menú está abierto
+        if (navMenu.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+}
+
+function closeMobileMenu() {
+    const navMenu = document.getElementById('navMenu');
+    const mobileToggle = document.getElementById('mobileMenuToggle');
+    
+    if (navMenu && mobileToggle) {
+        navMenu.classList.remove('active');
+        mobileToggle.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Cerrar menú móvil al redimensionar la ventana
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+        closeMobileMenu();
+    }
+});
+
+// Cerrar menú móvil al hacer clic fuera de él
+document.addEventListener('click', function(event) {
+    const navMenu = document.getElementById('navMenu');
+    const mobileToggle = document.getElementById('mobileMenuToggle');
+    
+    if (navMenu && mobileToggle && 
+        !navMenu.contains(event.target) && 
+        !mobileToggle.contains(event.target) &&
+        navMenu.classList.contains('active')) {
+        closeMobileMenu();
+    }
+});
+
+function initializeHomePage() {
+    // Initialize all components
+    initializeNavigation();
+    initializeCounters();
+    initializeProgressCircles();
+    initializeModuleCards();
+    initializeTutorialCards();
+    initializeScrollEffects();
+    initializeTheme();
+    
+    console.log('SYSLAB Home Page initialized successfully');
+}
+
+// Navigation functionality
+function initializeNavigation() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links
+            navLinks.forEach(l => l.classList.remove('active'));
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // Smooth scroll to section
+            const targetId = this.getAttribute('href');
+            const targetSection = document.querySelector(targetId);
+            
+            if (targetSection) {
+                const headerHeight = document.querySelector('.header').offsetHeight;
+                const targetPosition = targetSection.offsetTop - headerHeight - 20;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Update active nav link on scroll
+    window.addEventListener('scroll', updateActiveNavLink);
+}
+
+function updateActiveNavLink() {
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const headerHeight = document.querySelector('.header').offsetHeight;
+    
+    let currentSection = '';
+    
+    sections.forEach(section => {
+        const sectionTop = section.offsetTop - headerHeight - 100;
+        const sectionHeight = section.offsetHeight;
+        
+        if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+            currentSection = section.getAttribute('id');
+        }
+    });
+    
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${currentSection}`) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Animated counters for hero stats
+function initializeCounters() {
+    const counters = [
+        { element: document.getElementById('projectsCount'), target: 24, suffix: '' },
+        { element: document.getElementById('samplesCount'), target: 1847, suffix: '' },
+        { element: document.getElementById('reportsCount'), target: 156, suffix: '' }
+    ];
+    
+    // Start counters when hero section is visible
+    const heroSection = document.querySelector('.hero');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                counters.forEach(counter => {
+                    animateCounter(counter.element, counter.target, counter.suffix);
+                });
+                observer.unobserve(heroSection);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    observer.observe(heroSection);
+}
+
+function animateCounter(element, target, suffix = '') {
+    let current = 0;
+    const increment = target / 100;
+    const duration = 2000; // 2 seconds
+    const stepTime = duration / 100;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+            current = target;
+            clearInterval(timer);
+        }
+        element.textContent = Math.floor(current).toLocaleString() + suffix;
+    }, stepTime);
+}
+
+// Progress circles animation
+function initializeProgressCircles() {
+    const progressCircles = document.querySelectorAll('.progress-circle');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const circle = entry.target;
+                const percentage = parseInt(circle.getAttribute('data-percentage'));
+                const degrees = (percentage / 100) * 360;
+                
+                // Animate the progress circle
+                setTimeout(() => {
+                    circle.style.setProperty('--percentage', `${degrees}deg`);
+                }, 500);
+                
+                observer.unobserve(circle);
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    progressCircles.forEach(circle => {
+        observer.observe(circle);
+    });
+}
+
+// Module cards functionality
+function initializeModuleCards() {
+    const moduleCards = document.querySelectorAll('.module-card');
+    
+    moduleCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const moduleType = this.getAttribute('onclick')?.match(/navigateToModule\('(.+)'\)/)?.[1];
+            if (moduleType) {
+                navigateToModule(moduleType);
+            }
+        });
+        
+        // Add hover effect
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(-5px)';
+        });
+    });
+}
+
+// Tutorial cards functionality
+function initializeTutorialCards() {
+    const tutorialCards = document.querySelectorAll('.tutorial-card');
+    
+    tutorialCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const tutorialTitle = this.querySelector('h3').textContent;
+            playTutorial(tutorialTitle);
+        });
+    });
+}
+
+// Scroll effects
+function initializeScrollEffects() {
+    const animatedElements = document.querySelectorAll('.module-card, .indicator-card, .tutorial-card, .support-card');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    
+    animatedElements.forEach(element => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(30px)';
+        element.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(element);
+    });
+}
+
+// Main application access
+function accessMainApp() {
+    // Show loading state
+    showLoadingModal('Accediendo al Sistema SYSLAB...');
+    
+    // Simulate loading time
+    setTimeout(() => {
+        // In a real implementation, this would redirect to the Power Apps application
+        // For demo purposes, we'll show a success message
+        hideLoadingModal();
+        showSuccessModal('¡Bienvenido al Sistema SYSLAB!', 'Redirigiendo a la aplicación principal...');
+        
+        // Simulate redirect after 2 seconds
+        setTimeout(() => {
+            // window.location.href = 'https://your-powerapps-url.com';
+            console.log('Redirecting to Power Apps application...');
+            hideSuccessModal();
+        }, 2000);
+    }, 1500);
+}
+
+// Module navigation
+function navigateToModule(moduleType) {
+    const moduleUrls = {
+        'projects': '/main.aspx?pagetype=entitylist&etn=syslab_project',
+        'laboratory': '/main.aspx?pagetype=entitylist&etn=syslab_sample',
+        'financial': '/main.aspx?pagetype=entitylist&etn=syslab_invoice',
+        'reports': '/main.aspx?pagetype=dashboard&id=syslab_dashboard',
+        'configuration': '/main.aspx?pagetype=entitylist&etn=syslab_configuration',
+        'quality': '/main.aspx?pagetype=entitylist&etn=syslab_quality'
+    };
+    
+    const moduleNames = {
+        'projects': 'Gestión de Proyectos',
+        'laboratory': 'Laboratorio',
+        'financial': 'Gestión Financiera',
+        'reports': 'Reportes e Indicadores',
+        'configuration': 'Configuración',
+        'quality': 'Control de Calidad'
+    };
+    
+    showLoadingModal(`Accediendo a ${moduleNames[moduleType]}...`);
+    
+    setTimeout(() => {
+        hideLoadingModal();
+        // In a real implementation, this would navigate to the specific module
+        console.log(`Navigating to module: ${moduleType}`);
+        console.log(`URL: ${moduleUrls[moduleType]}`);
+        
+        // For demo purposes, show success message
+        showSuccessModal(
+            `Módulo ${moduleNames[moduleType]}`,
+            'Redirigiendo al módulo seleccionado...'
+        );
+        
+        setTimeout(() => {
+            hideSuccessModal();
+        }, 2000);
+    }, 1000);
+}
+
+// Tutorial functionality
+function showTutorials() {
+    const tutorialsSection = document.getElementById('tutoriales');
+    const headerHeight = document.querySelector('.header').offsetHeight;
+    const targetPosition = tutorialsSection.offsetTop - headerHeight - 20;
+    
+    window.scrollTo({
+        top: targetPosition,
+        behavior: 'smooth'
+    });
+    
+    // Highlight tutorials section
+    tutorialsSection.style.background = 'linear-gradient(135deg, rgba(78, 205, 196, 0.1), rgba(0, 123, 167, 0.1))';
+    setTimeout(() => {
+        tutorialsSection.style.background = 'white';
+    }, 3000);
+}
+
+function playTutorial(tutorialTitle) {
+    showLoadingModal('Cargando tutorial...');
+    
+    setTimeout(() => {
+        hideLoadingModal();
+        showTutorialModal(tutorialTitle);
+    }, 1000);
+}
+
+// Modal functions
+function showLoadingModal(message) {
+    const modal = createModal('loading-modal');
+    modal.innerHTML = `
+        <div class="modal-content loading-content">
+            <div class="loading-spinner"></div>
+            <h3>${message}</h3>
+            <p>Por favor espere...</p>
+        </div>
+    `;
+    
+    // Add loading spinner styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #007BA7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-content {
+            text-align: center;
+            padding: 2rem;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+}
+
+function hideLoadingModal() {
+    const modal = document.getElementById('loading-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showSuccessModal(title, message) {
+    const modal = createModal('success-modal');
+    modal.innerHTML = `
+        <div class="modal-content success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>${title}</h3>
+            <p>${message}</p>
+        </div>
+    `;
+    
+    // Add success styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .success-icon {
+            color: #10b981;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .success-content {
+            text-align: center;
+            padding: 2rem;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+}
+
+function hideSuccessModal() {
+    const modal = document.getElementById('success-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function showTutorialModal(tutorialTitle) {
+    const modal = createModal('tutorial-modal');
+    modal.innerHTML = `
+        <div class="modal-content tutorial-content">
+            <div class="modal-header">
+                <h3>${tutorialTitle}</h3>
+                <button class="close-btn" onclick="closeTutorialModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="video-placeholder">
+                    <i class="fas fa-play-circle"></i>
+                    <p>Video tutorial: ${tutorialTitle}</p>
+                    <p class="video-description">Este tutorial te guiará paso a paso a través de las funcionalidades principales del módulo.</p>
+                    <button class="btn btn-primary" onclick="startTutorial()">
+                        <i class="fas fa-play"></i>
+                        Iniciar Tutorial
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add tutorial modal styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .tutorial-content {
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.5rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #666;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: #f1f5f9;
+            color: #007BA7;
+        }
+        
+        .modal-body {
+            padding: 0 1.5rem 1.5rem;
+        }
+        
+        .video-placeholder {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .video-placeholder i {
+            font-size: 4rem;
+            color: #007BA7;
+            margin-bottom: 1rem;
+        }
+        
+        .video-description {
+            color: #666;
+            margin: 1rem 0 2rem;
+        }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(modal);
+}
+
+function closeTutorialModal() {
+    const modal = document.getElementById('tutorial-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function startTutorial() {
+    showLoadingModal('Iniciando tutorial...');
+    
+    setTimeout(() => {
+        hideLoadingModal();
+        closeTutorialModal();
+        showSuccessModal('Tutorial Iniciado', 'El tutorial se está reproduciendo en una nueva ventana.');
+        
+        setTimeout(() => {
+            hideSuccessModal();
+        }, 2000);
+    }, 1500);
+}
+
+// Helper function to create modal
+function createModal(id) {
+    const modal = document.createElement('div');
+    modal.id = id;
+    modal.className = 'modal-overlay';
+    
+    // Add modal styles if not already added
+    if (!document.getElementById('modal-styles')) {
+        const style = document.createElement('style');
+        style.id = 'modal-styles';
+        style.textContent = `
+            .modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                backdrop-filter: blur(4px);
+            }
+            
+            .modal-content {
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                max-width: 400px;
+                width: 90%;
+                animation: modalSlideIn 0.3s ease-out;
+            }
+            
+            @keyframes modalSlideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px) scale(0.95);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+            }
+            
+            .modal-content h3 {
+                color: #007BA7;
+                margin-bottom: 0.5rem;
+            }
+            
+            .modal-content p {
+                color: #666;
+                margin-bottom: 1rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    return modal;
+}
+
+// Support functions
+function contactSupport() {
+    showLoadingModal('Conectando con soporte técnico...');
+    
+    setTimeout(() => {
+        hideLoadingModal();
+        showSuccessModal(
+            'Soporte Técnico',
+            'Se ha abierto un ticket de soporte. Nuestro equipo se contactará contigo pronto.'
+        );
+        
+        setTimeout(() => {
+            hideSuccessModal();
+        }, 3000);
+    }, 1500);
+}
+
+// Utility functions
+function formatNumber(num) {
+    return num.toLocaleString();
+}
+
+function getCurrentDateTime() {
+    return new Date().toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Performance monitoring
+function trackPagePerformance() {
+    if ('performance' in window) {
+        window.addEventListener('load', () => {
+            const perfData = performance.timing;
+            const loadTime = perfData.loadEventEnd - perfData.navigationStart;
+            console.log(`Page load time: ${loadTime}ms`);
+        });
+    }
+}
+
+// Initialize performance tracking
+trackPagePerformance();
+
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('JavaScript error:', e.error);
+    // In production, you might want to send this to a logging service
+});
+
+// Keyboard navigation support
+document.addEventListener('keydown', function(e) {
+    // ESC key closes modals
+    if (e.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal-overlay');
+        modals.forEach(modal => modal.remove());
+    }
+    
+    // Enter key on focused buttons
+    if (e.key === 'Enter' && e.target.tagName === 'BUTTON') {
+        e.target.click();
+    }
+});
+
+// Accessibility improvements
+function improveAccessibility() {
+    // Add ARIA labels to interactive elements
+    const moduleCards = document.querySelectorAll('.module-card');
+    moduleCards.forEach((card, index) => {
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', `Acceder al módulo ${card.querySelector('h3').textContent}`);
+    });
+    
+    // Add focus styles
+    const style = document.createElement('style');
+    style.textContent = `
+        .module-card:focus,
+        .tutorial-card:focus,
+        .support-card:focus {
+            outline: 2px solid #007BA7;
+            outline-offset: 2px;
+        }
+        
+        .btn:focus {
+            outline: 2px solid #007BA7;
+            outline-offset: 2px;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Initialize accessibility improvements
+improveAccessibility();
+
+console.log('SYSLAB Home Page JavaScript loaded successfully');

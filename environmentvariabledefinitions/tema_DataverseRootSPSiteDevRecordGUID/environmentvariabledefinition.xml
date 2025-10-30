@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="tema_DataverseRootSPSiteDevRecordGUID">
+  <defaultvalue>f020c461-ba88-f011-b4cc-7c1e525fa32f</defaultvalue>
+  <description default="Es el ID del Sitio Sharepoint Producción. Se encuentra en la tabla  Sharepoint Site, en la columna: SharePoint Site ID. El de Produccion:  y el de Desarrollo: f020c461-ba88-f011-b4cc-7c1e525fa32f">
+    <label description="Es el ID del Sitio Sharepoint Producción. Se encuentra en la tabla  Sharepoint Site, en la columna: SharePoint Site ID. El de Produccion:  y el de Desarrollo: f020c461-ba88-f011-b4cc-7c1e525fa32f" languagecode="3082" />
+  </description>
+  <displayname default="Dataverse Root SP Site Dev Record GUID">
+    <label description="Dataverse Root SP Site Dev Record GUID" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

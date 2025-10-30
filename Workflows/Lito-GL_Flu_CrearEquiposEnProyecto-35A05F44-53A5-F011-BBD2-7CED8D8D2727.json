@@ -1,0 +1,248 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "Dominio Entorno (tema_DominioEntorno)": {
+          "defaultValue": "https://orgfd8997b1.crm4.dynamics.com/",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_DominioEntorno",
+            "description": "El de produccion es:     y el de desarrollo es: "
+          }
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "tema_litogl_tc_proyectos",
+              "subscriptionRequest/scope": 4
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "bdf2c772-a06b-4644-bc53-1f1f641f3ad6"
+          }
+        }
+      },
+      "actions": {
+        "Ambito-CrearEquipoTecnico": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-NombreProyecto": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tc_cp_idproyecto']"
+            },
+            "Redactar-IDUnidadNegocios": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/_owningbusinessunit_value']",
+              "runAfter": {
+                "Redactar-NombreProyecto": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-GuidProyecto": {
+              "type": "Compose",
+              "inputs": "@concat('/lito_gl_tc_proyectos(', triggerOutputs()?['body/lito_gl_tc_proyectosid'], ')')",
+              "runAfter": {
+                "Redactar-GuidUnidadNegocios": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-GuidUnidadNegocios": {
+              "type": "Compose",
+              "inputs": "@concat('/businessunits(', outputs('Redactar-IDUnidadNegocios'), ')')",
+              "runAfter": {
+                "Redactar-IDUnidadNegocios": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tc_proyectosid']",
+              "runAfter": {
+                "Redactar-GuidProyecto": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "AgregarUnaFilaNueva-TablaEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "item/name": "@concat(outputs('Redactar-NombreProyecto'), ' - Lito-GL | Tecnico')",
+                  "item/teamtype": 0,
+                  "item/membershiptype": 0,
+                  "item/businessunitid@odata.bind": "@concat('/businessunits(', triggerOutputs()?['body/_owningbusinessunit_value'], ')')",
+                  "item/tema_LitoGL_te_bu_Proyecto@odata.bind": "@concat('/tema_litogl_tc_proyectoses(', triggerOutputs()?['body/tema_litogl_tc_proyectosid'], ')')",
+                  "item/tema_litogl_te_op_roltecnico": 1
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "CreateRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Redactar": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Compose-DominioEntorno": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Ambito-AsignarRolTecnicoAEquipos": {
+          "type": "Scope",
+          "actions": {
+            "EnumerarFilas-TablaRolesDeSeguridad": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "roles",
+                  "$filter": "name eq 'Lito-GL | Tecnico'"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            },
+            "RelacionarFilasEquipoARolTecnico": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "recordId": "@outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']",
+                  "associationEntityRelationship": "teamroles_association",
+                  "item/@odata.id": "@concat(outputs('Compose-DominioEntorno'),'api/data/v9.1/roles(',\r\n  outputs('EnumerarFilas-TablaRolesDeSeguridad')?['body/value'][0]['roleid'],\r\n  ')'\r\n)"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "AssociateEntities",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "EnumerarFilas-TablaRolesDeSeguridad": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "ObtenerUnaFilaPorId-TablaEquipos": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "recordId": "@outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']",
+                  "$expand": "teamroles_association\n"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "GetItem",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "RelacionarFilasEquipoARolTecnico": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-NombreRol": {
+              "type": "Compose",
+              "inputs": "@outputs('ObtenerUnaFilaPorId-TablaEquipos')?['body']['teamroles_association']",
+              "runAfter": {
+                "ObtenerUnaFilaPorId-TablaEquipos": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Ambito-CrearEquipoTecnico": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Compose-DominioEntorno": {
+          "type": "Compose",
+          "inputs": "@parameters('Dominio Entorno (tema_DominioEntorno)')",
+          "runAfter": {}
+        },
+        "Ambito-EquipoResponsableProyecto": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-GUIDEquipoCreado": {
+              "type": "Compose",
+              "inputs": "@outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']"
+            },
+            "ActualizarFila-PropietarioProyecto": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tc_proyectoses",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tc_proyectosid']",
+                  "item/ownerid@odata.bind": "@concat('/teams(', outputs('Redactar-GUIDEquipoCreado'), ')')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Redactar-GUIDEquipoCreado": [
+                  "SUCCEEDED"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Ambito-AsignarRolTecnicoAEquipos": [
+              "SUCCEEDED"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

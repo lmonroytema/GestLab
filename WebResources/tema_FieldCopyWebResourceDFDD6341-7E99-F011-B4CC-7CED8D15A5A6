@@ -1,0 +1,15 @@
+if (typeof CopyUserToProyectoEquipo === "undefined") var CopyUserToProyectoEquipo = {};
+
+CopyUserToProyectoEquipo.OnSave = function(executionContext) {
+    var formContext = executionContext.getFormContext();
+
+    var src = formContext.getAttribute("tema_litogl_tr_bu_idusuario");
+    var dst = formContext.getAttribute("tema_litogl_tr_cp_id_proyecto_equipo");
+    if (!src || !dst) return;
+
+    var v = src.getValue();
+    if (v && v.length > 0) {
+        // Copia solo el nombre (string) al campo de texto
+        dst.setValue(v[0].name || "");
+    }
+};

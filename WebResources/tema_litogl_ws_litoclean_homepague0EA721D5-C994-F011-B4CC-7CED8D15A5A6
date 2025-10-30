@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LITOCLEAN - Sistema de Gestión de Laboratorios</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* CSS EMBEBIDO - COPIADO DE styles.css */
+        :root {
+            /* Paleta de colores basada en el logo LITOCLEAN */
+            --primary-color: #1B8A9A;
+            --primary-dark: #0F5F6B;
+            --primary-light: #2BA3B4;
+            --teal-deep: #0D4F5C;
+            --teal-medium: #1B8A9A;
+            --teal-light: #4DB6C2;
+            --teal-accent: #7FCDD3;
+            --secondary-color: #2E8B57;
+            --accent-color: #FF6B35;
+            --text-primary: #0D4F5C;
+            --text-secondary: #1B8A9A;
+            --text-light: #4DB6C2;
+            --background: #FFFFFF;
+            --surface: #F0FAFB;
+            --border: #B8E6EA;
+            --shadow: rgba(27, 138, 154, 0.15);
+            --success: #38A169;
+            --warning: #D69E2E;
+            --error: #E53E3E;
+            --gradient-primary: linear-gradient(135deg, #1B8A9A 0%, #0D4F5C 50%, #1B8A9A 100%);
+            --gradient-secondary: linear-gradient(45deg, #4DB6C2 0%, #1B8A9A 50%, #0D4F5C 100%);
+            --gradient-hero: linear-gradient(135deg, #0D4F5C 0%, #1B8A9A 30%, #4DB6C2 70%, #7FCDD3 100%);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #4DAAAA;
+            --primary-dark: #2E8B8B;
+            --primary-light: #6BC5C5;
+            --secondary-color: #1A2332;
+            --accent-color: #FF8A65;
+            --text-primary: #E8F4F8;
+            --text-secondary: #B0BEC5;
+            --background: #0F1419;
+            --surface: #1A2332;
+            --border: #2D3748;
+            --shadow: rgba(0, 0, 0, 0.3);
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --error: #F44336;
+            --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+            --gradient-secondary: linear-gradient(135deg, var(--secondary-color) 0%, var(--surface) 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--background);
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, 
+                rgba(240, 250, 251, 0.95) 0%, 
+                rgba(255, 255, 255, 0.9) 50%, 
+                rgba(224, 244, 246, 0.95) 100%);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(184, 230, 234, 0.6);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 20px rgba(27, 138, 154, 0.1);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(77, 182, 194, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-image {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .company-logo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
+
+        .company-logo:hover {
+            transform: scale(1.05);
+        }
+
+        /* Fallback para cuando no hay logo */
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+
+        .logo-text h1 {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--primary-color);
+            margin-bottom: 0.2rem;
+            letter-spacing: -0.5px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .nav-menu ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: white;
+            background: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(27, 138, 154, 0.3);
+        }
+
+        /* Estilos específicos para modo oscuro */
+        [data-theme="dark"] .header {
+            background: linear-gradient(135deg, 
+                rgba(0, 0, 0, 0.95) 0%, 
+                rgba(15, 20, 25, 0.9) 50%, 
+                rgba(0, 0, 0, 0.95) 100%);
+            border-bottom: 1px solid rgba(77, 170, 170, 0.3);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .header::before {
+            background: radial-gradient(circle at 30% 50%, rgba(77, 170, 170, 0.1) 0%, transparent 70%);
+        }
+
+        [data-theme="dark"] .logo-text h1 {
+            color: #FFFFFF;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="dark"] .logo-text p {
+            color: #B0BEC5;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .nav-link {
+            color: #FFFFFF;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .nav-link:hover,
+        [data-theme="dark"] .nav-link.active {
+            color: #000000;
+            background: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(77, 170, 170, 0.4);
+            text-shadow: none;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-details h4 {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 0.1rem;
+        }
+
+        .user-details p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Mobile Menu Styles */
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            gap: 4px;
+        }
+
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient-hero);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(125, 205, 211, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(77, 182, 194, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(13, 79, 92, 0.4) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,255,255,0.08)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-content h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            color: white;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+            letter-spacing: -1px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            text-shadow: 2px 2px 4px rgba(13, 79, 92, 0.5);
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            text-shadow: 1px 1px 2px rgba(13, 79, 92, 0.3);
+        }
+
+        /* Quick Access Section */
+        .quick-access {
+            padding: 4rem 0;
+            position: relative;
+        }
+
+        .quick-access::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(125, 205, 211, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .quick-access-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .quick-access-card {
+            background: linear-gradient(135deg, rgba(240, 250, 251, 0.9) 0%, rgba(255, 255, 255, 0.95) 100%);
+            border: 1px solid rgba(184, 230, 234, 0.5);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 8px 32px var(--shadow),
+                inset 0 1px 0 rgba(125, 205, 211, 0.2);
+        }
+
+        .quick-access-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 70% 30%, rgba(77, 182, 194, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .quick-access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px var(--shadow);
+            border-color: var(--primary-color);
+        }
+
+        .quick-access-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--gradient-primary);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .quick-access-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .quick-access-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 4px 16px rgba(27, 138, 154, 0.3),
+                inset 0 1px 0 rgba(125, 205, 211, 0.3);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 8px 32px rgba(27, 138, 154, 0.4),
+                inset 0 1px 0 rgba(125, 205, 211, 0.5);
+            background: var(--gradient-secondary);
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Estilos específicos para modo oscuro - Cards de módulos */
+        [data-theme="dark"] .quick-access-card {
+            background: linear-gradient(135deg, rgba(26, 35, 50, 0.9) 0%, rgba(15, 20, 25, 0.95) 100%);
+            border: 1px solid rgba(77, 170, 170, 0.3);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(77, 170, 170, 0.2);
+        }
+
+        [data-theme="dark"] .quick-access-card h3 {
+            color: #FFFFFF;
+        }
+
+        [data-theme="dark"] .quick-access-card p {
+            color: #B0BEC5;
+        }
+
+        [data-theme="dark"] .quick-access-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Stats Section */
+        .stats {
+            background: var(--surface);
+            padding: 4rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px var(--shadow);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(46, 139, 139, 0.1);
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: block;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Dashboard Section */
+        .dashboard {
+            background: var(--background);
+            padding: 4rem 0;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 20px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px var(--shadow);
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 260px;
+        }
+
+        /* Projects & Campaigns */
+        .projects-section {
+            margin-top: 3rem;
+        }
+        .filters-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            align-items: flex-end;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin: 1rem 0 2rem;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            min-width: 220px;
+        }
+        .filter-group label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .filter-group select,
+        .filter-group input[type="text"] {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.55rem 0.7rem;
+            background: var(--background);
+            color: var(--text-primary);
+        }
+        .filters-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-left: auto;
+        }
+        .stages-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .stages-chips .chip {
+            border: 1px solid var(--border);
+            background: var(--background);
+            color: var(--text-primary);
+            padding: 0.35rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+        }
+        .stages-chips .chip:hover { transform: translateY(-2px); }
+        .stages-chips .chip.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+        .projects-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.25rem;
+        }
+        .project-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 20px var(--shadow);
+            overflow: hidden;
+        }
+        .project-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 1rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .project-card .card-header h4 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        .project-card .card-header .count {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .project-card .card-body { padding: 0.75rem 1rem 1rem; }
+        .campaign-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0.75rem;
+            margin: 0.35rem 0;
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+        }
+        .campaign-name { color: var(--text-primary); font-weight: 600; }
+        .stage-badge {
+            border-radius: 999px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--accent-color);
+            color: #fff;
+        }
+
+        /* Tutorials Section */
+        .tutorials {
+            padding: 4rem 0;
+        }
+
+        .tutorials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .tutorial-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px var(--shadow);
+        }
+
+        .tutorial-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tutorial-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .tutorial-card h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tutorial-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive Design */
+        /* Tablets (768px - 1024px) */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0 1.5rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .quick-access-grid {
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .tutorials-grid {
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            }
+
+            .nav-menu ul {
+                gap: 1.5rem;
+            }
+
+            .nav-link {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Móviles (320px - 768px) */
+        @media (max-width: 768px) {
+            .header {
+                height: 70px;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1001;
+            }
+
+            .header-content {
+                justify-content: space-between;
+                align-items: center;
+                height: 100%;
+            }
+
+            body {
+                padding-top: 70px;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+                z-index: 1002;
+            }
+
+            .nav-menu {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: var(--background);
+                border-bottom: 1px solid var(--border);
+                transform: translateY(-100%);
+                transition: transform 0.3s ease;
+                z-index: 1001;
+                box-shadow: 0 4px 20px var(--shadow);
+            }
+
+            .nav-menu.active {
+                transform: translateY(0);
+            }
+
+            .nav-menu ul {
+                flex-direction: column;
+                padding: 2rem 0;
+                gap: 0;
+            }
+
+            .nav-menu ul li {
+                width: 100%;
+                text-align: center;
+            }
+
+            .nav-link {
+                display: block;
+                padding: 1rem 2rem;
+                border-bottom: 1px solid var(--border);
+                width: 100%;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .logo-text h1 {
+                font-size: 1.5rem;
+            }
+
+            .logo-text p {
+                font-size: 0.7rem;
+            }
+
+            .hero {
+                padding: 2rem 0 3rem 0;
+                margin-top: 0;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .hero-content p {
+                font-size: 1rem;
+                padding: 0 1rem;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .quick-access-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+
+            .tutorials-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        /* Ajustes para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .header {
+                height: 65px;
+            }
+
+            body {
+                padding-top: 65px;
+            }
+
+            .nav-menu {
+                top: 65px;
+            }
+
+            .logo-image {
+                width: 40px;
+                height: 40px;
+            }
+
+            .hero {
+                padding: 100px 0 60px;
+            }
+
+            .hero-content h1 {
+                font-size: 1.8rem;
+            }
+
+            .section {
+                padding: 60px 0;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+
+            .hero-content h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .quick-access-card,
+            .tutorial-card {
+                padding: 1.5rem 1rem;
+            }
+
+            .btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Ajustes para pantallas extra pequeñas */
+        @media (max-width: 360px) {
+            .header {
+                height: 60px;
+            }
+
+            body {
+                padding-top: 60px;
+            }
+
+            .nav-menu {
+                top: 60px;
+            }
+
+            .hero-content h1 {
+                font-size: 1.6rem;
+            }
+
+            .section h2 {
+                font-size: 1.8rem;
+            }
+
+            .nav-link {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">
+                        <div class="logo-text">
+                            <h1>LITOCLEAN</h1>
+                            <p>INVESTIGACIÓN & REMEDIACIÓN DE SUELOS</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botón hamburguesa para móviles -->
+                <button class="mobile-menu-toggle" id="mobileMenuToggle" onclick="toggleMobileMenu()">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+
+                <nav class="nav-menu" id="navMenu">
+                    <ul>
+                        <li><a href="#inicio" class="nav-link active" onclick="closeMobileMenu()">Inicio</a></li>
+                        <li><a href="#modulos" class="nav-link" onclick="closeMobileMenu()">Módulos</a></li>
+                        <li><a href="#indicadores" class="nav-link" onclick="closeMobileMenu()">Indicadores</a></li>
+                        <li><a href="#dashboard" class="nav-link" onclick="closeMobileMenu()">Dashboard</a></li>
+                        <li><a href="#tutoriales" class="nav-link" onclick="closeMobileMenu()">Tutoriales</a></li>
+                        <li><a href="#soporte" class="nav-link" onclick="closeMobileMenu()">Soporte</a></li>
+                    </ul>
+                </nav>
+                <div class="header-controls">
+                    <div class="theme-toggle">
+                        <button id="themeToggle" class="theme-btn" onclick="toggleTheme()" title="Cambiar tema">
+                            <i class="fas fa-moon"></i>
+                        </button>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="user-details">
+                            <h4>Usuario</h4>
+                            <p>Administrador</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Laboratorios</h1>
+                <p>GESTLAB - Plataforma Integral</p>
+                <p>Gestión de manera eficiente tus campañas de muestreo, desde la planificación de proyectos hasta el cierre financiero. Optimiza ISO 17025.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Access Section -->
+    <section class="quick-access" id="modulos">
+        <div class="container">
+            <div class="section-header">
+                <h2>Acceso Rápido</h2>
+                <p>Accede directamente a los módulos principales del sistema</p>
+            </div>
+            <div class="quick-access-grid">
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Reportes Analíticos</h3>
+                    <p>Visualiza métricas clave, genera reportes personalizados y toma decisiones basadas en datos.</p>
+                    <button class="btn" onclick="navigateToModule('reports')">
+                        <i class="fas fa-arrow-right"></i>
+                        Ir al Módulo
+                    </button>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3>Gestión de Proyectos</h3>
+                    <p>Planifica, ejecuta y monitorea todos tus proyectos de laboratorio desde una plataforma centralizada.</p>
+                    <button class="btn" onclick="navigateToModule('projects')">
+                        <i class="fas fa-arrow-right"></i>
+                        Ir al Módulo
+                    </button>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3>Gestión Campañas</h3>
+                    <p>Gestiona campañas de muestreo, desde la planificación hasta el cierre financiero. Optimiza ISO 17025.</p>
+                    <button class="btn" onclick="navigateToModule('campaigns')">
+                        <i class="fas fa-arrow-right"></i>
+                        Ir al Módulo
+                    </button>
+                </div>
+                <div class="quick-access-card">
+                    <div class="card-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3>Catálogo de Paquetes Analíticos</h3>
+                    <p>Administra el catálogo completo de paquetes analíticos disponibles y sus especificaciones técnicas.</p>
+                    <button class="btn" onclick="navigateToModule('packages')">
+                        <i class="fas fa-arrow-right"></i>
+                        Ir al Módulo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats" id="indicadores">
+        <div class="container">
+            <div class="section-header">
+                <h2>Indicadores Clave</h2>
+                <p>Monitorea el rendimiento de tu laboratorio en tiempo real</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="projectsCount">0</div>
+                    <div class="stat-label">Proyectos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="campaignsCount">0</div>
+                    <div class="stat-label">Campañas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="solicitudesCount">0</div>
+                    <div class="stat-label">Solicitudes realizadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="provisionesCount">0</div>
+                    <div class="stat-label">Provisiones realizadas</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section class="dashboard" id="dashboard">
+        <div class="container">
+            <div class="section-header">
+                <h2>Dashboard</h2>
+                <p>Gráficos en tiempo real desde Dataverse</p>
+            </div>
+            <div class="dashboard-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Campañas por mes (últimos 6)</h3>
+                    <div class="chart-container">
+                        <canvas id="chartCampaignsByMonth"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Proyectos Activos vs Inactivos</h3>
+                    <div class="chart-container">
+                        <canvas id="chartProjectsState"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Solicitudes Activas vs Inactivas</h3>
+                    <div class="chart-container">
+                        <canvas id="chartSolicitudesState"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Provisiones Activas vs Inactivas</h3>
+                    <div class="chart-container">
+                        <canvas id="chartProvisionesState"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="projects-section" id="projectsCampaigns">
+                <div class="section-header">
+                    <h2>Proyectos y Campañas</h2>
+                    <p>Campañas por proyecto y etapa actual</p>
+                </div>
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label for="filterProject">Proyecto</label>
+                        <select id="filterProject">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterCampaign">Campañas</label>
+                        <select id="filterCampaign">
+                            <option value="">Seleccione campaña</option>
+                        </select>
+                    </div>
+                    <div class="filters-actions">
+                        <button class="btn btn-secondary" id="btnRefreshProjects"><i class="fas fa-rotate-right"></i> Actualizar listado</button>
+                        <button class="btn btn-primary" id="btnApplyFilters"><i class="fas fa-filter"></i> Aplicar filtros</button>
+                        <button class="btn btn-secondary" id="btnClearFilters"><i class="fas fa-undo"></i> Limpiar</button>
+                    </div>
+                </div>
+                <div id="projectsList" class="projects-list"></div>
+                <div id="campaignDetails" class="campaign-details" style="margin-top:16px;">
+                    <div class="grid-row" style="display:flex; gap:16px; flex-wrap:wrap;">
+                        <div class="chart-card" style="flex:1 1 420px; min-width:320px;">
+                            <div class="section-header" style="padding:8px 12px;">
+                                <h3>Paquetes de la campaña</h3>
+                            </div>
+                            <div id="packagesGrid" class="data-grid"></div>
+                        </div>
+                        <div class="chart-card" style="flex:1 1 420px; min-width:320px;">
+                            <div class="section-header" style="padding:8px 12px;">
+                                <h3>Campos link de la campaña</h3>
+                            </div>
+                            <div id="linksGrid" class="data-grid"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tutorials Section -->
+    <section class="tutorials" id="tutoriales">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tutoriales y Guías</h2>
+                <p>Aprende a usar todas las funcionalidades del sistema</p>
+            </div>
+            <div class="tutorials-grid">
+                <div class="tutorial-card">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <h3>Introducción al Sistema</h3>
+                    </div>
+                    <p>Conoce las funcionalidades básicas y cómo navegar por la plataforma SYSLAB.</p>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-play"></i>
+                        Ver Tutorial
+                    </button>
+                </div>
+                <div class="tutorial-card">
+                    <div class="tutorial-header">
+                        <div class="tutorial-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h3>Configuración Avanzada</h3>
+                    </div>
+                    <p>Personaliza el sistema según las necesidades específicas de tu laboratorio.</p>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-play"></i>
+                        Ver Tutorial
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="soporte">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>LITOCLEAN</h3>
+                    <ul>
+                        <li><a href="#about">Acerca de</a></li>
+                        <li><a href="#services">Servicios</a></li>
+                        <li><a href="#contact">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Soporte</h3>
+                    <ul>
+                        <li><a href="#help">Centro de Ayuda</a></li>
+                        <li><a href="#docs">Documentación</a></li>
+                        <li><a href="#support">Soporte Técnico</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#privacy">Privacidad</a></li>
+                        <li><a href="#terms">Términos</a></li>
+                        <li><a href="#cookies">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 LITOCLEAN. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // JAVASCRIPT EMBEBIDO - COPIADO DE script.js
+        
+        // Theme Management
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.querySelector('#themeToggle i');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                updateThemeIcon('light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                updateThemeIcon('dark');
+            }
+        }
+
+        function updateThemeIcon(theme) {
+            const themeIcon = document.querySelector('#themeToggle i');
+            if (theme === 'dark') {
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+            }
+        }
+
+        // Initialize theme on page load
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.body.setAttribute('data-theme', 'dark');
+                updateThemeIcon('dark');
+            } else {
+                updateThemeIcon('light');
+            }
+        }
+
+        // Mobile Menu Functions
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            
+            navMenu.classList.toggle('active');
+            mobileToggle.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            if (navMenu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function closeMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            
+            navMenu.classList.remove('active');
+            mobileToggle.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navMenu = document.getElementById('navMenu');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+            
+            if (!navMenu.contains(event.target) && !mobileToggle.contains(event.target)) {
+                closeMobileMenu();
+            }
+        });
+
+        // Close mobile menu on window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeMobileMenu();
+            }
+        });
+
+        // Navigation Functions for Power Apps
+        function navigateToModule(module) {
+            // URLs específicas para Power Apps Model Driven
+            const moduleUrls = {
+                'projects': 'https://orgfd8997b1.crm4.dynamics.com/main.aspx?appid=b4ae21b6-688e-f011-b4cc-7c1e525fa32f&pagetype=entitylist&etn=tema_litogl_tc_proyectos&viewid=e934c53e-c8be-4378-858e-28ad87d01f91&viewType=1039',
+                'packages': 'https://orgfd8997b1.crm4.dynamics.com/main.aspx?appid=b4ae21b6-688e-f011-b4cc-7c1e525fa32f&pagetype=entitylist&etn=tema_litoglpaquetesanaliticos&viewid=00ed35ed-98f4-4529-86bf-fa8e2c4dbccd&viewType=1039',
+                'reports': 'https://orgfd8997b1.crm4.dynamics.com/main.aspx?appid=b4ae21b6-688e-f011-b4cc-7c1e525fa32f&pagetype=dashboard&id=4e0934cb-c28c-f011-b4cc-7c1e525fa32f&type=system&_canOverride=true',
+                'campaigns':'https://orgfd8997b1.crm4.dynamics.com/main.aspx?appid=b4ae21b6-688e-f011-b4cc-7c1e525fa32f&pagetype=entitylist&etn=tema_litogl_tp_campaniasanalitica&viewid=1555282c-000a-48b5-8db6-b0b8f81cc014&viewType=1039'
+            };
+            
+            if (moduleUrls[module]) {
+                // En Power Apps, usar window.parent para navegar en el contexto correcto
+                if (window.parent && window.parent !== window) {
+                    window.parent.location.href = moduleUrls[module];
+                } else {
+                    window.location.href = moduleUrls[module];
+                }
+            }
+        }
+
+        // Indicadores: carga de datos inmediata y al entrar en vista
+        function getXrm() {
+            try {
+                if (window.Xrm && window.Xrm.WebApi) return window.Xrm;
+                if (window.parent && window.parent.Xrm && window.parent.Xrm.WebApi) return window.parent.Xrm;
+            } catch (e) {}
+            return null;
+        }
+
+        async function fetchCount(entity, pkAttr, filterXml) {
+            const X = getXrm();
+            if (!X) return null;
+            const fetch = [
+                "<fetch aggregate='true' no-lock='true'>",
+                "<entity name='" + entity + "'>",
+                (filterXml || ""),
+                "<attribute name='" + pkAttr + "' alias='count' aggregate='count' />",
+                "</entity>",
+                "</fetch>"
+            ].join("");
+            try {
+                const res = await X.WebApi.retrieveMultipleRecords(entity, "?fetchXml=" + encodeURIComponent(fetch));
+                const v = res && res.entities && res.entities[0] && res.entities[0].count;
+                const n = v ? parseInt(v, 10) : 0;
+                return Number.isFinite(n) ? n : 0;
+            } catch (e) {
+                console.warn("fetchCount error (" + entity + "):", e);
+                return null;
+            }
+        }
+
+        function animateCounter(el, start, end, duration) {
+            if (!el) return;
+            if (start === end) { el.textContent = String(end); return; }
+            const t0 = performance.now();
+            function step(t) {
+                const p = Math.min((t - t0) / duration, 1);
+                const val = Math.round(start + (end - start) * p);
+                el.textContent = String(val);
+                if (p < 1) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function setCounter(id, value) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const current = parseInt((el.textContent || "0").replace(/\D+/g, ""), 10) || 0;
+            const next = typeof value === "number" ? value : current;
+            animateCounter(el, current, next, 800);
+            try { localStorage.setItem("stats_" + id, String(next)); } catch (e) {}
+        }
+
+        async function updateStatsFromDataverse() {
+            try {
+                // Prefill desde cache/actual para preview local
+                ["projectsCount","campaignsCount","solicitudesCount","provisionesCount"].forEach(function(id){
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const current = parseInt((el.textContent || "0").replace(/\D+/g, ""), 10) || 0;
+                    let stored = NaN;
+                    try { stored = parseInt(localStorage.getItem("stats_" + id) || "", 10); } catch (e) {}
+                    el.textContent = Number.isFinite(stored) ? stored : current;
+                });
+
+                const X = getXrm();
+                if (!X) {
+                    // En preview local no hay Xrm; mantener valores actuales
+                    return;
+                }
+
+                const results = await Promise.all([
+                    fetchCount("tema_litogl_tc_proyectos", "tema_litogl_tc_proyectosid"),
+                    fetchCount("tema_litogl_tp_campaniasanalitica", "tema_litogl_tp_campaniasanaliticaid"),
+                    fetchCount("tema_litoglcampanasolicitud", "tema_litoglcampanasolicitudid"),
+                    fetchCount("tema_litoglcampanaprovisiones", "tema_litoglcampanaprovisionesid")
+                ]);
+
+                setCounter("projectsCount", results[0]);
+                setCounter("campaignsCount", results[1]);
+                setCounter("solicitudesCount", results[2]);
+                setCounter("provisionesCount", results[3]);
+            } catch (err) {
+                console.error("updateStatsFromDataverse error:", err);
+            }
+        }
+
+        function installStatsObserver() {
+            const statsSection = document.querySelector('.stats');
+            if (!statsSection) { 
+                updateStatsFromDataverse().then(() => { window.__statsUpdated = true; }); 
+                return; 
+            }
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (!window.__statsUpdated) {
+                            updateStatsFromDataverse().then(() => { window.__statsUpdated = true; });
+                        }
+                        observer.unobserve(statsSection);
+                    }
+                });
+            }, { threshold: 0.3 });
+            observer.observe(statsSection);
+        }
+
+        // Dashboard: gráficos y datos agregados
+        const dashboardCharts = {};
+
+        // Proyectos y Campañas: estado y utilidades
+        const projectsCampaigns = {
+            campaigns: [],
+            projectMap: new Map(),
+            nameAttrCampaign: 'name',
+            filters: { projectId: '', campaignId: '', search: '' }
+        };
+
+        function getStageLabel(n) { return 'Etapa ' + (n || 0); }
+        function getStageColor(n) {
+            // Paleta de 11 colores (agradables/contrastados)
+            const palette = ['#1B8A9A','#2374AB','#2A9D8F','#8AB17D','#E9C46A','#F4A261','#E76F51','#C8553D','#9C27B0','#3F51B5','#009688'];
+            return palette[(Math.max(1, Math.min(11, parseInt(n, 10) || 1)) - 1) % palette.length];
+        }
+
+        async function ensureCampaignNameAttr() {
+            // Nombre de la campaña especificado por el usuario
+            projectsCampaigns.nameAttrCampaign = 'tema_litogl_tp_txt_nombrecampania';
+            return projectsCampaigns.nameAttrCampaign;
+        }
+
+        async function ensureStageNameAttr() {
+            // Nombre de la etapa actual especificado por el usuario
+            return 'tema_litogl_tp_fx_nombreetapa';
+        }
+
+        async function ensureCampaignCodeAttr() {
+            // Código de campaña (supuesto común). Ajustar si el esquema difiere.
+            return 'tema_litogl_tp_txt_codigocampania';
+        }
+
+        async function fetchCampaignsWithProjects() {
+            const X = getXrm();
+            const nameAttr = await ensureCampaignNameAttr();
+            const stageNameAttr = await ensureStageNameAttr();
+            const projectNameAttr = await ensureProjectNameAttr();
+            const projectCodeAttr = await ensureProjectCodeAttr();
+            const codeAttr = await ensureCampaignCodeAttr();
+            if (!X) {
+                // Fallback datos de ejemplo en preview local
+                const proyectos = [
+                    { id: 'p0', code: '33101', name: 'PROYECTO DEMO' },
+                    { id: 'p1', code: '33107', name: 'Calidad del agua municipal' },
+                    { id: 'p2', code: '33108', name: 'PROYECTO DEMO' },
+                    { id: 'p3', code: '33201', name: 'proyecto de prueba 003' }
+                ];
+                const items = Array.from({ length: 24 }, (_, i) => ({
+                    id: 'demo-' + i,
+                    code: 'CAMP-' + String(i+1).padStart(3,'0'),
+                    name: 'Campaña ' + (i+1),
+                    stage: (i % 11) + 1,
+                    stageName: 'Etapa ' + ((i % 11) + 1),
+                    project: proyectos[i % proyectos.length]
+                }));
+                return items;
+            }
+            try {
+                const select = `?$select=${nameAttr},${codeAttr},${stageNameAttr},tema_litogl_tp_int_etapaactualid,_tema_litogl_tp_bu_idproyecto_value&$orderby=createdon desc&$top=200`;
+                const res = await X.WebApi.retrieveMultipleRecords('tema_litogl_tp_campaniasanalitica', select);
+                const entities = res.entities || [];
+                const projects = await fetchProjectsList();
+                const pmap = new Map(projects.map(p => [p.id, p]));
+                const items = entities.map(e => ({
+                    id: e.tema_litogl_tp_campaniasanaliticaid,
+                    code: e[codeAttr] || '',
+                    name: e[nameAttr] || e.name || '(sin nombre)',
+                    stage: e.tema_litogl_tp_int_etapaactualid,
+                    stageName: e[stageNameAttr] || '',
+                    project: {
+                        id: e['_tema_litogl_tp_bu_idproyecto_value'] || null,
+                        code: ((pmap.get(e['_tema_litogl_tp_bu_idproyecto_value']) || {}).code) || '',
+                        name: ((pmap.get(e['_tema_litogl_tp_bu_idproyecto_value']) || {}).name) || 'Sin proyecto'
+                    }
+                }));
+                return items;
+            } catch (e) {
+                console.error('Error al obtener campañas con proyecto:', e);
+                return [];
+            }
+        }
+
+        function applyProjectsFilters(items) {
+            const f = projectsCampaigns.filters;
+            let out = items.slice();
+            if (f.projectId) out = out.filter(it => (it.project?.id || '') === f.projectId);
+            if (f.search) {
+                const s = f.search.toLowerCase();
+                out = out.filter(it => (it.name || '').toLowerCase().includes(s));
+            }
+            return out;
+        }
+
+        function groupByProject(items) {
+            const map = new Map();
+            items.forEach(it => {
+                const pid = it.project?.id || 'none';
+                const pname = it.project?.name || 'Sin proyecto';
+                const pcode = it.project?.code || '';
+                if (!map.has(pid)) map.set(pid, { id: pid, name: pname, code: pcode, campaigns: [] });
+                map.get(pid).campaigns.push(it);
+            });
+            return map;
+        }
+
+        function renderProjectsCampaigns(items) {
+            const container = document.getElementById('projectsList');
+            if (!container) return;
+            container.innerHTML = '';
+            const map = groupByProject(items);
+            projectsCampaigns.projectMap = map;
+            // Rellenar el selector de proyectos
+            const sel = document.getElementById('filterProject');
+            if (sel && sel.options.length <= 1) {
+                const current = sel.value;
+                sel.innerHTML = '<option value="">Todos</option>';
+                Array.from(map.values()).forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id === 'none' ? '' : p.id;
+                    opt.textContent = (p.code ? (p.code + ' — ') : '') + p.name;
+                    sel.appendChild(opt);
+                });
+                if (current) sel.value = current;
+            }
+
+            Array.from(map.values()).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                const header = document.createElement('div');
+                header.className = 'card-header';
+                const title = document.createElement('h4');
+                const label = p.code ? (p.code + ' — ' + p.name) : p.name;
+                title.textContent = label;
+                const count = document.createElement('div');
+                count.className = 'count';
+                count.textContent = (p.campaigns?.length || 0) + ' campañas';
+                header.appendChild(title);
+                header.appendChild(count);
+                const body = document.createElement('div');
+                body.className = 'card-body';
+                p.campaigns.forEach(c => {
+                    const row = document.createElement('div');
+                    row.className = 'campaign-item';
+                    const cn = document.createElement('div');
+                    cn.className = 'campaign-name';
+                    cn.textContent = c.name;
+                    const badge = document.createElement('div');
+                    badge.className = 'stage-badge';
+                    badge.textContent = c.stageName || getStageLabel(c.stage);
+                    badge.style.backgroundColor = getStageColor(c.stage);
+                    row.appendChild(cn);
+                    row.appendChild(badge);
+                    body.appendChild(row);
+                });
+                card.appendChild(header);
+                card.appendChild(body);
+                container.appendChild(card);
+            });
+        }
+
+        function initProjectsCampaignsUI() {
+            const sel = document.getElementById('filterProject');
+            const campSel = document.getElementById('filterCampaign');
+            const applyBtn = document.getElementById('btnApplyFilters');
+            const clearBtn = document.getElementById('btnClearFilters');
+            const refreshBtn = document.getElementById('btnRefreshProjects');
+
+            // Cargar lista de proyectos en el selector
+            fetchProjectsList().then(populateProjectsSelect).catch(e => console.warn('populateProjectsSelect error:', e));
+
+            if (sel) sel.addEventListener('change', async () => {
+                projectsCampaigns.filters.projectId = sel.value || '';
+                await loadCampaignsByProject(projectsCampaigns.filters.projectId);
+                populateCampaignsSelect(projectsCampaigns.campaigns || []);
+            });
+            if (refreshBtn) refreshBtn.addEventListener('click', async () => {
+                const prev = sel?.value || '';
+                const projects = await fetchProjectsList();
+                populateProjectsSelect(projects);
+                if (sel && prev) sel.value = prev;
+                await loadCampaignsByProject(sel?.value || '');
+                populateCampaignsSelect(projectsCampaigns.campaigns || []);
+            });
+            if (campSel) campSel.addEventListener('change', async () => {
+                const id = campSel.value || '';
+                projectsCampaigns.filters.campaignId = id;
+                if (id) await loadCampaignDetails(id);
+                else { renderPackagesGrid([]); renderLinksGrid([]); }
+            });
+            if (applyBtn) applyBtn.addEventListener('click', () => {
+                const filtered = applyProjectsFilters(projectsCampaigns.campaigns);
+                renderProjectsCampaigns(filtered);
+            });
+            if (clearBtn) clearBtn.addEventListener('click', () => {
+                projectsCampaigns.filters = { projectId: '', campaignId: '', search: '' };
+                if (sel) sel.value = '';
+                if (campSel) campSel.value = '';
+                renderProjectsCampaigns(projectsCampaigns.campaigns);
+                renderPackagesGrid([]);
+                renderLinksGrid([]);
+            });
+        }
+
+        async function loadProjectsCampaignsData() {
+            const items = await fetchCampaignsWithProjects();
+            projectsCampaigns.campaigns = items || [];
+            renderProjectsCampaigns(items || []);
+        }
+
+        async function ensureProjectNameAttr() {
+            // Nombre del proyecto especificado por el usuario
+            return 'tema_nombreproyecto';
+        }
+
+        async function ensureProjectCodeAttr() {
+            const X = getXrm();
+            if (!X) return 'name';
+            try {
+                const meta = await X.Utility.getEntityMetadata('tema_litogl_tc_proyectos', []);
+                const attrs = meta?.Attributes || meta?.attributes || [];
+                if (Array.isArray(attrs)) {
+                    const candidate = attrs.find(a => {
+                        const label = (a?.DisplayName?.UserLocalizedLabel?.Label || a?.DisplayName?.LocalizedLabels?.[0]?.Label || '').toLowerCase();
+                        return label === 'id proyecto' || label === 'código' || label === 'codigo' || /id.*proyecto/i.test(label) || /c[oó]digo/i.test(label);
+                    });
+                    if (candidate?.LogicalName || candidate?.logicalName) {
+                        return candidate.LogicalName || candidate.logicalName;
+                    }
+                }
+                const primary = (meta && (meta.PrimaryNameAttribute || meta.primaryNameAttribute)) || 'tema_nombreproyecto';
+                return primary;
+            } catch (e) {
+                console.warn('No se pudo obtener atributo de código de proyectos, uso "tema_nombreproyecto"');
+                return 'tema_nombreproyecto';
+            }
+        }
+
+        async function fetchProjectsList() {
+            const X = getXrm();
+            if (!X) {
+                return [
+                    { id: 'p0', code: '33101', name: 'PROYECTO DEMO' },
+                    { id: 'p1', code: '33107', name: 'Calidad del agua municipal' },
+                    { id: 'p2', code: '33108', name: 'PROYECTO DEMO' },
+                    { id: 'p3', code: '33201', name: 'proyecto de prueba 003' }
+                ];
+            }
+            try {
+                const nameAttr = await ensureProjectNameAttr();
+                const codeAttr = await ensureProjectCodeAttr();
+                const res = await X.WebApi.retrieveMultipleRecords(
+                    'tema_litogl_tc_proyectos',
+                    `?$select=${nameAttr},${codeAttr},tema_litogl_tc_proyectosid&$orderby=${codeAttr} asc&$top=300`
+                );
+                const entities = res.entities || [];
+                return entities.map(e => ({
+                    id: e.tema_litogl_tc_proyectosid,
+                    code: e[codeAttr] || '',
+                    name: e[nameAttr] || e.name || '(sin nombre)'
+                }));
+            } catch (e) {
+                console.error('Error al obtener proyectos:', e);
+                return [];
+            }
+        }
+
+        function populateProjectsSelect(projects) {
+            const sel = document.getElementById('filterProject');
+            if (!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '<option value="">Todos</option>';
+            projects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id || '';
+                const label = (p.code ? (p.code + ' — ') : '') + (p.name || '(sin nombre)');
+                opt.textContent = label;
+                sel.appendChild(opt);
+            });
+            if (current) sel.value = current;
+        }
+
+        function populateCampaignsSelect(campaigns) {
+            const sel = document.getElementById('filterCampaign');
+            if (!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '<option value="">Seleccione campaña</option>';
+            const items = Array.isArray(campaigns) ? campaigns : [];
+            const projectId = projectsCampaigns?.filters?.projectId || '';
+            const filtered = projectId ? items.filter(c => (c.project?.id || '') === projectId) : items;
+            filtered.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id || '';
+                const codePart = c.code ? (c.code + ' — ') : '';
+                const stagePart = c.stageName ? (' (' + c.stageName + ')') : (c.stage ? (' (' + getStageLabel(c.stage) + ')') : '');
+                opt.textContent = codePart + (c.name || '(sin nombre)') + stagePart;
+                sel.appendChild(opt);
+            });
+            if (current) sel.value = current;
+        }
+
+        async function loadCampaignsByProject(projectId) {
+            const X = getXrm();
+            const nameAttr = await ensureCampaignNameAttr();
+            const stageNameAttr = await ensureStageNameAttr();
+            if (!projectId) {
+                // Sin filtro: cargar conjunto general
+                await loadProjectsCampaignsData();
+                return;
+            }
+            if (!X) {
+                // Preview local: filtrar del dataset simulado
+                const items = (projectsCampaigns.campaigns || []).filter(c => (c.project?.id || '') === projectId);
+                renderProjectsCampaigns(items);
+                return;
+            }
+            try {
+                const projectNameAttr = await ensureProjectNameAttr();
+                const projectCodeAttr = await ensureProjectCodeAttr();
+                const q = `?$select=${nameAttr},${stageNameAttr},tema_litogl_tp_int_etapaactualid,_tema_litogl_tp_bu_idproyecto_value&$filter=_tema_litogl_tp_bu_idproyecto_value eq ${projectId}&$orderby=createdon desc&$top=500`;
+                const res = await X.WebApi.retrieveMultipleRecords('tema_litogl_tp_campaniasanalitica', q);
+                const projRes = await X.WebApi.retrieveRecord('tema_litogl_tc_proyectos', projectId, `?$select=tema_litogl_tc_proyectosid,${projectNameAttr},${projectCodeAttr}`);
+                const projectInfo = {
+                    id: projRes?.tema_litogl_tc_proyectosid || projectId,
+                    code: projRes?.[projectCodeAttr] || '',
+                    name: projRes?.[projectNameAttr] || 'Proyecto'
+                };
+                const items = (res.entities || []).map(e => ({
+                    id: e.tema_litogl_tp_campaniasanaliticaid,
+                    name: e[nameAttr] || e.name || '(sin nombre)',
+                    stage: e.tema_litogl_tp_int_etapaactualid,
+                    stageName: e[stageNameAttr] || '',
+                    project: {
+                        id: projectInfo.id,
+                        code: projectInfo.code,
+                        name: projectInfo.name
+                    }
+                }));
+                projectsCampaigns.campaigns = items;
+                renderProjectsCampaigns(items);
+            } catch (e) {
+                console.error('Error al obtener campañas por proyecto:', e);
+            }
+        }
+
+        async function fetchCampaignPackages(campaignId) {
+            const X = getXrm();
+            if (!campaignId) return [];
+            if (!X) {
+                return [
+                    { package: { id: 'pkg-demo-1', name: 'Paquete DEMO A' }, laboratory: { id: 'lab-demo-1', name: 'Laboratorio DEMO' } },
+                    { package: { id: 'pkg-demo-2', name: 'Paquete DEMO B' }, laboratory: { id: 'lab-demo-1', name: 'Laboratorio DEMO' } }
+                ];
+            }
+            try {
+                const navCamp = 'tema_litoglcampanapaquetes_LitoGl_tr_cp_IdCampania_tema_litogl_tp_campaniasanalitica';
+                const navPkg = 'tema_litoglcampanapaquetes_LitoGl_tr_cp_IdPaquete_tema_litoglpaquetesanaliticos';
+                const navLab = 'tema_litoglcampanapaquetes_LitoGl_tr_cp_IdLaboratorio_tema_litogl_tc_laboratorio';
+                const q = `?$select=tema_litoglcampanapaquetesid&$filter=${navCamp}/tema_litogl_tp_campaniasanaliticaid eq ${campaignId}&$expand=${navPkg}($select=name),${navLab}($select=name)&$top=200`;
+                const res = await X.WebApi.retrieveMultipleRecords('tema_litoglcampanapaquetes', q);
+                const entities = res.entities || [];
+                return entities.map(e => ({
+                    id: e.tema_litoglcampanapaquetesid,
+                    package: {
+                        id: e[navPkg]?.tema_litoglpaquetesanaliticosid || e[navPkg]?.id || null,
+                        name: e[navPkg]?.name || e[navPkg]?.tema_name || 'Paquete'
+                    },
+                    laboratory: {
+                        id: e[navLab]?.tema_litogl_tc_laboratorioid || e[navLab]?.id || null,
+                        name: e[navLab]?.name || e[navLab]?.tema_name || 'Laboratorio'
+                    }
+                }));
+            } catch (e) {
+                console.error('Error al obtener paquetes de campaña:', e);
+                return [];
+            }
+        }
+
+        function renderPackagesGrid(items) {
+            const grid = document.getElementById('packagesGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const tbl = document.createElement('table');
+            tbl.style.width = '100%';
+            tbl.style.borderCollapse = 'collapse';
+            const thead = document.createElement('thead');
+            const hr = document.createElement('tr');
+            ['Paquete','Laboratorio'].forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                th.style.textAlign = 'left';
+                th.style.padding = '8px 10px';
+                th.style.borderBottom = '1px solid var(--border)';
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+            const tbody = document.createElement('tbody');
+            (items || []).forEach(i => {
+                const tr = document.createElement('tr');
+                const tdPkg = document.createElement('td');
+                tdPkg.textContent = i.package?.name || '(sin paquete)';
+                tdPkg.style.padding = '8px 10px';
+                const tdLab = document.createElement('td');
+                tdLab.textContent = i.laboratory?.name || '(sin laboratorio)';
+                tdLab.style.padding = '8px 10px';
+                tr.appendChild(tdPkg);
+                tr.appendChild(tdLab);
+                tbody.appendChild(tr);
+            });
+            tbl.appendChild(thead);
+            tbl.appendChild(tbody);
+            grid.appendChild(tbl);
+        }
+
+        async function fetchCampaignLinks(campaignId) {
+            const X = getXrm();
+            if (!campaignId) return {};
+            if (!X) {
+                return {
+                    tema_litogl_tc_txt_carpeta_campana: 'https://sharepoint.example/carpeta-demo',
+                    tema_litogl_tp_txt_url_laboratorio: 'https://laboratorio.example',
+                    tema_litogl_tp_txt_evidencias_campo: '',
+                    tema_litogl_tp_txt_constancia_pedido: '',
+                    tema_litogl_tp_txt_proforma: '',
+                    tema_litogl_tp_txt_factura: ''
+                };
+            }
+            try {
+                const select = [
+                    'tema_litogl_tc_txt_carpeta_campana',
+                    'tema_litogl_tp_txt_url_laboratorio',
+                    'tema_litogl_tp_txt_evidencias_campo',
+                    'tema_litogl_tp_txt_constancia_pedido',
+                    'tema_litogl_tp_txt_proforma',
+                    'tema_litogl_tp_txt_factura',
+                    'tema_litogl_tc_txt_url_web_service'
+                ].join(',');
+                const res = await X.WebApi.retrieveRecord('tema_litogl_tp_campaniasanalitica', campaignId, `?$select=${select}`);
+                return res || {};
+            } catch (e) {
+                console.error('Error al obtener links de campaña:', e);
+                return {};
+            }
+        }
+
+        function renderLinksGrid(links) {
+            const grid = document.getElementById('linksGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const rows = [
+                { label: 'Carpeta de campaña', key: 'tema_litogl_tc_txt_carpeta_campana' },
+                { label: 'URL laboratorio', key: 'tema_litogl_tp_txt_url_laboratorio' },
+                { label: 'Evidencias de campo', key: 'tema_litogl_tp_txt_evidencias_campo' },
+                { label: 'Constancia de pedido', key: 'tema_litogl_tp_txt_constancia_pedido' },
+                { label: 'Proforma', key: 'tema_litogl_tp_txt_proforma' },
+                { label: 'Factura', key: 'tema_litogl_tp_txt_factura' },
+                { label: 'Web service (laboratorio)', key: 'tema_litogl_tc_txt_url_web_service' }
+            ];
+            const tbl = document.createElement('table');
+            tbl.style.width = '100%';
+            tbl.style.borderCollapse = 'collapse';
+            const thead = document.createElement('thead');
+            const hr = document.createElement('tr');
+            ['Campo','Enlace'].forEach(h => {
+                const th = document.createElement('th');
+                th.textContent = h;
+                th.style.textAlign = 'left';
+                th.style.padding = '8px 10px';
+                th.style.borderBottom = '1px solid var(--border)';
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+            const tbody = document.createElement('tbody');
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                const td1 = document.createElement('td');
+                td1.textContent = r.label;
+                td1.style.padding = '8px 10px';
+                const td2 = document.createElement('td');
+                td2.style.padding = '8px 10px';
+                const url = links ? (links[r.key] || '') : '';
+                if (url) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.textContent = url;
+                    td2.appendChild(a);
+                } else {
+                    td2.textContent = '—';
+                }
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tbody.appendChild(tr);
+            });
+            tbl.appendChild(thead);
+            tbl.appendChild(tbody);
+            grid.appendChild(tbl);
+        }
+
+        async function loadCampaignDetails(campaignId) {
+            try {
+                const [packages, links] = await Promise.all([
+                    fetchCampaignPackages(campaignId),
+                    fetchCampaignLinks(campaignId)
+                ]);
+                renderPackagesGrid(packages);
+                renderLinksGrid(links);
+            } catch (e) {
+                console.warn('loadCampaignDetails error:', e);
+                renderPackagesGrid([]);
+                renderLinksGrid([]);
+            }
+        }
+
+        function initDashboardCharts() {
+            try {
+                const textColor = getComputedStyle(document.body).getPropertyValue('--text-primary').trim() || '#0D4F5C';
+                const borderColor = getComputedStyle(document.body).getPropertyValue('--border').trim() || '#B8E6EA';
+                const primaryColor = getComputedStyle(document.body).getPropertyValue('--primary-color').trim() || '#1B8A9A';
+                const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim() || '#FF6B35';
+
+                const campaignsCtx = document.getElementById('chartCampaignsByMonth')?.getContext('2d');
+                const projectsCtx = document.getElementById('chartProjectsState')?.getContext('2d');
+                const solicitudesCtx = document.getElementById('chartSolicitudesState')?.getContext('2d');
+                const provisionesCtx = document.getElementById('chartProvisionesState')?.getContext('2d');
+
+                if (campaignsCtx) {
+                    const gradient = campaignsCtx.createLinearGradient(0, 0, 0, 300);
+                    gradient.addColorStop(0, primaryColor + '22');
+                    gradient.addColorStop(1, primaryColor + '00');
+                    dashboardCharts.campaignsByMonth = new Chart(campaignsCtx, {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Campañas',
+                                data: [],
+                                borderColor: primaryColor,
+                                backgroundColor: gradient,
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 3,
+                                pointBackgroundColor: primaryColor
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true, labels: { color: textColor } },
+                                tooltip: { enabled: true }
+                            },
+                            scales: {
+                                x: { ticks: { color: textColor }, grid: { color: borderColor } },
+                                y: { ticks: { color: textColor }, grid: { color: borderColor } }
+                            }
+                        }
+                    });
+                }
+
+                function makeDonut(ctx, label, color) {
+                    return new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Activos', 'Inactivos'],
+                            datasets: [{
+                                label,
+                                data: [0, 0],
+                                backgroundColor: [primaryColor, accentColor],
+                                borderColor: [primaryColor, accentColor],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { color: textColor } },
+                                tooltip: { enabled: true }
+                            }
+                        }
+                    });
+                }
+
+                if (projectsCtx) dashboardCharts.projectsState = makeDonut(projectsCtx, 'Proyectos', primaryColor);
+                if (solicitudesCtx) dashboardCharts.solicitudesState = makeDonut(solicitudesCtx, 'Solicitudes', primaryColor);
+                if (provisionesCtx) dashboardCharts.provisionesState = makeDonut(provisionesCtx, 'Provisiones', primaryColor);
+            } catch (e) {
+                console.warn('initDashboardCharts error:', e);
+            }
+        }
+
+        function updateChart(chart, labels, data) {
+            if (!chart) return;
+            chart.data.labels = labels || [];
+            chart.data.datasets[0].data = data || [];
+            chart.update();
+        }
+
+        async function fetchByState(entity) {
+            const X = getXrm();
+            if (!X) return null;
+            const fetch = [
+                "<fetch aggregate='true' no-lock='true'>",
+                "<entity name='" + entity + "'>",
+                "<attribute name='statecode' groupby='true' alias='statecode' />",
+                "<attribute name='statecode' aggregate='countcolumn' alias='count' />",
+                "</entity>",
+                "</fetch>"
+            ].join("");
+            try {
+                const res = await X.WebApi.retrieveMultipleRecords(entity, "?fetchXml=" + encodeURIComponent(fetch));
+                const items = res.entities || [];
+                let active = 0, inactive = 0;
+                items.forEach(it => {
+                    const code = parseInt(it.statecode, 10);
+                    const cnt = parseInt(it.count, 10) || 0;
+                    if (code === 0) active = cnt; else if (code === 1) inactive = cnt;
+                });
+                return { active, inactive };
+            } catch (e) {
+                console.warn('fetchByState error (' + entity + '):', e);
+                return null;
+            }
+        }
+
+        async function fetchCountByMonth(entity, months) {
+            const X = getXrm();
+            if (!X) return null;
+            const fetch = [
+                "<fetch aggregate='true' no-lock='true'>",
+                "<entity name='" + entity + "'>",
+                "<attribute name='createdon' groupby='true' dategrouping='month' alias='month' />",
+                "<attribute name='createdon' aggregate='countcolumn' alias='count' />",
+                "<filter type='and'>",
+                "<condition attribute='createdon' operator='last-x-months' value='" + (months || 6) + "'/>",
+                "</filter>",
+                "</entity>",
+                "</fetch>"
+            ].join("");
+            try {
+                const res = await X.WebApi.retrieveMultipleRecords(entity, "?fetchXml=" + encodeURIComponent(fetch));
+                const items = res.entities || [];
+                const pairs = items.map(it => ({
+                    t: new Date(it.month),
+                    c: parseInt(it.count, 10) || 0
+                })).sort((a,b) => a.t - b.t);
+                const labels = pairs.map(p => formatMonthEs(p.t));
+                const data = pairs.map(p => p.c);
+                return { labels, data };
+            } catch (e) {
+                console.warn('fetchCountByMonth error (' + entity + '):', e);
+                return null;
+            }
+        }
+
+        function formatMonthEs(d) {
+            try {
+                const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+                return meses[d.getMonth()] + ' ' + d.getFullYear();
+            } catch (e) {
+                return '';
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const X = getXrm();
+                if (!X) {
+                    // Datos de muestra para preview local
+                    const now = new Date();
+                    const labels = Array.from({ length: 6 }, (_, i) => {
+                        const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+                        return formatMonthEs(d);
+                    });
+                    updateChart(dashboardCharts.campaignsByMonth, labels, [4,6,7,3,5,9]);
+                    updateChart(dashboardCharts.projectsState, ['Activos','Inactivos'], [12,4]);
+                    updateChart(dashboardCharts.solicitudesState, ['Activos','Inactivos'], [8,2]);
+                    updateChart(dashboardCharts.provisionesState, ['Activos','Inactivos'], [10,3]);
+                    return;
+                }
+
+                const [campaniasMes, proyectosAI, solicitudesAI, provisionesAI] = await Promise.all([
+                    fetchCountByMonth('tema_litogl_tp_campaniasanalitica', 6),
+                    fetchByState('tema_litogl_tc_proyectos'),
+                    fetchByState('tema_litoglcampanasolicitud'),
+                    fetchByState('tema_litoglcampanaprovisiones')
+                ]);
+
+                if (campaniasMes) updateChart(dashboardCharts.campaignsByMonth, campaniasMes.labels, campaniasMes.data);
+                if (proyectosAI) updateChart(dashboardCharts.projectsState, ['Activos','Inactivos'], [proyectosAI.active, proyectosAI.inactive]);
+                if (solicitudesAI) updateChart(dashboardCharts.solicitudesState, ['Activos','Inactivos'], [solicitudesAI.active, solicitudesAI.inactive]);
+                if (provisionesAI) updateChart(dashboardCharts.provisionesState, ['Activos','Inactivos'], [provisionesAI.active, provisionesAI.inactive]);
+            } catch (e) {
+                console.error('loadDashboardData error:', e);
+            }
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            
+            // Add smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+
+            // Indicadores: actualizar inmediatamente y observar visibilidad
+            installStatsObserver();
+            updateStatsFromDataverse().then(() => { window.__statsUpdated = true; });
+
+            // Dashboard: inicializar y cargar datos
+            initDashboardCharts();
+            loadDashboardData();
+
+            // Proyectos y Campañas: inicializar UI y cargar datos
+            initProjectsCampaignsUI();
+            loadProjectsCampaignsData();
+        });
+    </script>
+</body>
+</html>

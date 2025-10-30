@@ -1,0 +1,968 @@
+/********************************************************************************************
+ * Web Resource: Crear carpeta SharePoint + pestañas progresivas por campo Sí/No
+ * Versión: 5.1 – Corrige refresco automático durante edición del usuario
+ * Autor original: Bladimir Muñoz Montes | Mejora: PowerApps Pro
+ ********************************************************************************************/
+
+if (typeof CampaniaAnaliticasForm === "undefined") CampaniaAnaliticasForm = { __namespace: true };
+
+// Seguridad: verificación de rol para permitir desbloqueo de etapas
+CampaniaAnaliticasForm.Security = {
+    unlockRoleId: "28a35d05-7280-f011-b4cb-7c1e5227d40d",
+    usuarioTieneRol: function (roleId) {
+        try {
+            var roles = Xrm.Utility.getGlobalContext().userSettings.roles.get();
+            roleId = (roleId || "").replace(/[{}]/g, "").toLowerCase();
+            for (var i = 0; i < roles.length; i++) {
+                var rid = (roles[i].id || roles[i].Id || "").replace(/[{}]/g, "").toLowerCase();
+                if (rid === roleId) return true;
+            }
+        } catch (e) {}
+        return false;
+    },
+    puedeDesbloquear: function () {
+        return CampaniaAnaliticasForm.Security.usuarioTieneRol(CampaniaAnaliticasForm.Security.unlockRoleId);
+    }
+};
+
+CampaniaAnaliticasForm.Events = {
+    OnSave: function (executionContext) {
+        const formContext = executionContext.getFormContext();
+        const urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_campana").getValue();
+
+        if (!urlValue) {
+            formContext.ui.setFormNotification(
+                "⚠️⏳ Creando carpeta de campaña en SharePoint. La URL aparecerá automáticamente cuando esté lista…",
+                "INFO",
+                "campaniaCreating"
+            );
+            CampaniaAnaliticasForm.Functions.startPolling(formContext);
+        } else {
+            formContext.ui.setFormNotification("✅ Cambios guardados con éxito", "INFO", "saveOnly");
+            setTimeout(() => formContext.ui.clearFormNotification("saveOnly"), 5000);
+        }
+
+        CampaniaAnaliticasForm.Functions.controlarVisibilidadPestanas(formContext);
+    },
+
+    OnLoad: function (executionContext) {
+        const formContext = executionContext.getFormContext();
+        const urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_campana").getValue();
+
+        // Detener cualquier intervalo previo por seguridad
+        if (CampaniaAnaliticasForm._intervalId) {
+            clearInterval(CampaniaAnaliticasForm._intervalId);
+            CampaniaAnaliticasForm._intervalId = null;
+        }
+
+        // Inicializar variables de control para detectar edición
+        CampaniaAnaliticasForm._isUserEditing = false;
+        CampaniaAnaliticasForm._lastCheckTime = new Date().getTime();
+
+        if (!urlValue) {
+            CampaniaAnaliticasForm.Functions.startPolling(formContext);
+        }
+
+        // Configurar detección de edición del usuario
+        CampaniaAnaliticasForm.Functions.setupEditingDetection(formContext);
+        
+        CampaniaAnaliticasForm.Functions.controlarVisibilidadPestanas(formContext);
+
+        // Capturar en caché el proyecto y laboratorio vinculados a la campaña
+        CampaniaAnaliticasForm.Functions.cacheValoresContexto(formContext);
+
+        // Actualizar caché si cambian proyecto/laboratorio
+        ["tema_litogl_tp_bu_idproyecto", "tema_litogl_tp_bu_idlaboratorio"].forEach(function (attrName) {
+            var a = formContext.getAttribute(attrName);
+            if (a && a.addOnChange) {
+                a.addOnChange(function () {
+                    CampaniaAnaliticasForm.Functions.cacheValoresContexto(formContext);
+                });
+            }
+        });
+
+        // Sincronizar la URL de laboratorio en la campaña al cargar y cuando cambie el laboratorio
+        try {
+            CampaniaAnaliticasForm.Functions.sincronizarUrlLaboratorio(formContext);
+            var labAttr = formContext.getAttribute("tema_litogl_tp_bu_idlaboratorio");
+            if (labAttr && labAttr.addOnChange) {
+                labAttr.addOnChange(function () {
+                    CampaniaAnaliticasForm.Functions.sincronizarUrlLaboratorio(formContext);
+                });
+            }
+        } catch (e) {
+            console.warn("No fue posible inicializar la sincronización de URL de laboratorio:", e);
+        }
+    }
+};
+
+CampaniaAnaliticasForm.Functions = {
+    /**
+     * Configura la detección de edición del usuario para pausar el polling
+     */
+    setupEditingDetection: function (formContext) {
+        if (CampaniaAnaliticasForm._disableEditingCheck) {
+            return;
+        }
+        // Detectar cuando el usuario comienza a editar
+        const controls = formContext.ui.controls.get();
+        controls.forEach(control => {
+            if (control.getControlType && (control.getControlType() === "standard" || control.getControlType() === "lookup")) {
+                // Agregar eventos para detectar cuando el usuario está editando
+                if (control.addOnKeyPress) {
+                    control.addOnKeyPress(() => {
+                        CampaniaAnaliticasForm._isUserEditing = true;
+                        CampaniaAnaliticasForm._lastEditTime = new Date().getTime();
+                    });
+                }
+                
+                // Detectar cuando el control pierde el foco
+                if (control.getAttribute && control.getAttribute().addOnChange) {
+                    control.getAttribute().addOnChange(() => {
+                        // Marcar que el usuario terminó de editar después de un breve delay
+                        setTimeout(() => {
+                            CampaniaAnaliticasForm._isUserEditing = false;
+                        }, 2000); // 2 segundos de gracia después de cambiar un campo
+                    });
+                }
+            }
+        });
+
+        // Detectar cambios en el formulario para pausar el polling
+        formContext.data.entity.addOnSave(() => {
+            CampaniaAnaliticasForm._isUserEditing = false;
+        });
+    },
+
+    /**
+     * Verifica si es seguro hacer el refresco (usuario no está editando y no hay cambios sin guardar)
+     */
+    isSafeToRefresh: function (formContext) {
+        // No refrescar si el usuario está editando activamente
+        if (CampaniaAnaliticasForm._isUserEditing) {
+            return false;
+        }
+
+        // No refrescar si hay cambios sin guardar
+        if (formContext.data.entity.getIsDirty()) {
+            return false;
+        }
+
+        // No refrescar si editó recientemente (dentro de los últimos 5 segundos)
+        if (CampaniaAnaliticasForm._lastEditTime && (new Date().getTime() - CampaniaAnaliticasForm._lastEditTime) < 5000) {
+            return false;
+        }
+
+        return true;
+    },
+
+    /**
+     * Revisa cada 10 s si ya existe la URL en el campo Dataverse y actualiza el mensaje.
+     * Solo refresca si es seguro hacerlo (usuario no está editando).
+     * Detiene el intervalo en cuanto detecta la URL.
+     */
+    startPolling: function (formContext) {
+        // Limpia intervalos previos para evitar duplicados
+        if (CampaniaAnaliticasForm._intervalId) clearInterval(CampaniaAnaliticasForm._intervalId);
+
+        CampaniaAnaliticasForm._intervalId = setInterval(() => {
+            // Solo refrescar si es seguro (usuario no está editando)
+            if (!CampaniaAnaliticasForm.Functions.isSafeToRefresh(formContext)) {
+                console.log("⏸️ Polling pausado - usuario editando o hay cambios sin guardar");
+                return;
+            }
+
+            // Verificar primero el valor actual sin refrescar
+            const currentUrlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_campana").getValue();
+            
+            if (currentUrlValue) {
+                // Ya hay URL, detener polling
+                CampaniaAnaliticasForm.Functions.stopPollingWithSuccess(formContext);
+                return;
+            }
+
+            // Solo hacer refresh si es necesario y seguro
+            formContext.data.refresh(false).then(() => {
+                const urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_campana").getValue();
+                if (urlValue) {
+                    CampaniaAnaliticasForm.Functions.stopPollingWithSuccess(formContext);
+                }
+            }, error => {
+                console.error("❌ Error al refrescar el formulario:", error);
+            });
+        }, 10000); // cada 10 s
+    },
+
+    /**
+     * Detiene el polling y muestra mensaje de éxito
+     */
+    stopPollingWithSuccess: function (formContext) {
+        // Quitar mensaje de creación y detener parpadeo
+        formContext.ui.clearFormNotification("campaniaCreating");
+
+        // Mostrar mensaje final
+        formContext.ui.setFormNotification(
+            "✅📁 Carpeta de campaña creada en SharePoint",
+            "INFO",
+            "campaniaReady"
+        );
+
+        // Limpiar mensaje después de 8 segundos
+        setTimeout(() => {
+            formContext.ui.clearFormNotification("campaniaReady");
+        }, 8000);
+
+        // Deshabilitar la revisión de edición a partir de ahora
+        CampaniaAnaliticasForm._disableEditingCheck = true;
+        CampaniaAnaliticasForm._isUserEditing = false;
+
+        // Enfocar automáticamente la pestaña de la etapa completada + 1
+        try {
+            const etapas = [
+                { campo: "tema_planificacion_completada", actual: "etapa1", siguiente: "etapa2" },
+                { campo: "tema_ejecucion_completada", actual: "etapa2", siguiente: "etapa3" },
+                { campo: "tema_solicitud_completada", actual: "etapa3", siguiente: "etapa4" },
+                { campo: "tema_provision_completada", actual: "etapa4", siguiente: "etapa5" },
+                { campo: "tema_recepcion_muestra_completada", actual: "etapa5", siguiente: "etapa6" },
+                { campo: "tema_recepcion_resultados_completado", actual: "etapa6", siguiente: "etapa7" },
+                { campo: "tema_validacion_resultados_completados", actual: "etapa7", siguiente: "etapa8" },
+                { campo: "tema_recepcion_proforma_completada", actual: "etapa8", siguiente: "etapa9" },
+                { campo: "tema_validacion_proforma_completada", actual: "etapa9", siguiente: "etapa10" },
+                { campo: "tema_recepcion_factura_completada", actual: "etapa10", siguiente: "etapa11" }
+            ];
+            let ultimo = -1;
+            for (let i = 0; i < etapas.length; i++) {
+                const a = formContext.getAttribute(etapas[i].campo);
+                if (a && a.getValue && a.getValue() === true) ultimo = i;
+            }
+            const tabName = (ultimo >= 0) ? etapas[ultimo].siguiente : "etapa1";
+            const tabToFocus = formContext.ui.tabs.get(tabName);
+            if (tabToFocus) {
+                tabToFocus.setVisible(true);
+                tabToFocus.setFocus();
+            }
+        } catch (e) {
+            console.warn("No fue posible enfocar pestaña de la etapa siguiente:", e);
+        }
+
+        // Detener polling
+        if (CampaniaAnaliticasForm._intervalId) {
+            clearInterval(CampaniaAnaliticasForm._intervalId);
+            CampaniaAnaliticasForm._intervalId = null;
+        }
+    },
+
+    controlarVisibilidadPestanas: function (formContext) {
+        try {
+            // Siempre mostrar Planificación
+            const tabPlanificacion = formContext.ui.tabs.get("etapa1");
+            if (tabPlanificacion) tabPlanificacion.setVisible(true);
+
+            // Mapa de avance y bloqueo: campo de completada, pestaña actual y siguiente
+            const etapas = [
+                { campo: "tema_planificacion_completada", actual: "etapa1", siguiente: "etapa2" },
+                { campo: "tema_ejecucion_completada", actual: "etapa2", siguiente: "etapa3" },
+                { campo: "tema_solicitud_completada", actual: "etapa3", siguiente: "etapa4" },
+                { campo: "tema_provision_completada", actual: "etapa4", siguiente: "etapa5" },
+                { campo: "tema_recepcion_muestra_completada", actual: "etapa5", siguiente: "etapa6" },
+                { campo: "tema_recepcion_resultados_completado", actual: "etapa6", siguiente: "etapa7" },
+                { campo: "tema_validacion_resultados_completados", actual: "etapa7", siguiente: "etapa8" },
+                { campo: "tema_recepcion_proforma_completada", actual: "etapa8", siguiente: "etapa9" },
+                { campo: "tema_validacion_proforma_completada", actual: "etapa9", siguiente: "etapa10" },
+                { campo: "tema_recepcion_factura_completada", actual: "etapa10", siguiente: "etapa11" }
+            ];
+
+            // Ocultar todas las pestañas inicialmente (menos planificación)
+            etapas.map(e => e.siguiente).forEach(tabName => {
+                const tab = formContext.ui.tabs.get(tabName);
+                if (tab) tab.setVisible(false);
+            });
+
+            // Mostrar progresivamente y bloquear pestaña completada
+            etapas.forEach(et => {
+                const attr = formContext.getAttribute(et.campo);
+                if (attr && attr.getValue() === true) {
+                    const tabActual = formContext.ui.tabs.get(et.actual);
+                    const tabSiguiente = formContext.ui.tabs.get(et.siguiente);
+                    if (tabSiguiente) tabSiguiente.setVisible(true);
+                    if (tabActual) CampaniaAnaliticasForm.Functions.bloquearPestana(formContext, tabActual);
+                }
+            });
+
+            // Registrar auto avance y bloqueo en cambios
+            CampaniaAnaliticasForm.Functions.setupAutoAdvanceOnCompletion(formContext, etapas);
+
+            // Enfocar automáticamente la pestaña de la etapa completada + 1
+            try {
+                let ultimo = -1;
+                for (let i = 0; i < etapas.length; i++) {
+                    const a = formContext.getAttribute(etapas[i].campo);
+                    if (a && a.getValue && a.getValue() === true) ultimo = i;
+                }
+                const tabName = (ultimo >= 0) ? etapas[ultimo].siguiente : "etapa1";
+                const tabToFocus = formContext.ui.tabs.get(tabName);
+                if (tabToFocus) {
+                    tabToFocus.setVisible(true);
+                    tabToFocus.setFocus();
+                }
+            } catch (f) {
+                console.warn("No fue posible enfocar pestaña de la etapa siguiente al cargar:", f);
+            }
+
+        } catch (e) {
+            console.error("❌ Error controlando visibilidad de pestañas:", e);
+        }
+    },
+
+    bloquearPestana: function (formContext, tab) {
+        try {
+            const sections = tab.sections.get();
+            sections.forEach(sec => {
+                const controls = sec.controls.get();
+                controls.forEach(ctrl => {
+                    if (ctrl && ctrl.setDisabled) {
+                        ctrl.setDisabled(true);
+                    }
+                });
+            });
+        } catch (e) {
+            console.warn("No fue posible bloquear pestaña:", e);
+        }
+    },
+
+    desbloquearPestana: function (formContext, tab) {
+        try {
+            const sections = tab.sections.get();
+            sections.forEach(sec => {
+                const controls = sec.controls.get();
+                controls.forEach(ctrl => {
+                    if (ctrl && ctrl.setDisabled) {
+                        ctrl.setDisabled(false);
+                    }
+                });
+            });
+        } catch (e) {
+            console.warn("No fue posible desbloquear pestaña:", e);
+        }
+    },
+
+    getPestanaActivaEtapa: function (formContext) {
+        try {
+            const nombres = [
+                "etapa1","etapa2","etapa3","etapa4","etapa5",
+                "etapa6","etapa7","etapa8","etapa9","etapa10","etapa11"
+            ];
+            let candidata = null;
+            for (let i = 0; i < nombres.length; i++) {
+                const tab = formContext.ui.tabs.get(nombres[i]);
+                if (!tab) continue;
+                if (tab.getVisible()) {
+                    candidata = tab;
+                    try { if (tab.getDisplayState && tab.getDisplayState() === "expanded") return tab; } catch (e) {}
+                }
+            }
+            return candidata;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    setupAutoAdvanceOnCompletion: function (formContext, etapas) {
+        etapas.forEach(et => {
+            const attr = formContext.getAttribute(et.campo);
+            if (!attr) return;
+            attr.removeOnChange(CampaniaAnaliticasForm._onStageChangeHandler || function () {});
+            const handler = function () {
+                const val = attr.getValue();
+                const tabActual = formContext.ui.tabs.get(et.actual);
+                const tabSiguiente = formContext.ui.tabs.get(et.siguiente);
+                if (val === true) {
+                    if (tabSiguiente) {
+                        tabSiguiente.setVisible(true);
+                    }
+                    if (tabActual) CampaniaAnaliticasForm.Functions.bloquearPestana(formContext, tabActual);
+                    // Solo notificar etapas 2–11
+                    const etapaNum = (et && et.actual && /^etapa\d+$/.test(et.actual)) ? parseInt(et.actual.replace('etapa',''), 10) : null;
+                    if (etapaNum && etapaNum >= 2 && etapaNum <= 11) {
+                        CampaniaAnaliticasForm.Functions.enviarNotificacionesEtapa(formContext, et);
+                    }
+                    // Actualizar campo de etapa actual (1–11) según etapa completada
+                     if (etapaNum && etapaNum >= 1 && etapaNum <= 11) {
+                         try {
+                             var etapaActualAttr = formContext.getAttribute("tema_litogl_tp_int_etapaactualid");
+                             if (etapaActualAttr) {
+                                 etapaActualAttr.setValue(etapaNum);
+                                 try { etapaActualAttr.setSubmitMode && etapaActualAttr.setSubmitMode("always"); } catch(e){}
+                                 try { formContext.data && formContext.data.entity && formContext.data.entity.save && formContext.data.entity.save(); } catch(e){}
+                             } else {
+                                 // Fallback: actualizar vía WebApi si el atributo no está en el formulario
+                                 try {
+                                     var recIdRaw = formContext.data && formContext.data.entity ? formContext.data.entity.getId() : null;
+                                     var recId = recIdRaw ? recIdRaw.replace(/[{}]/g, "") : null;
+                                     if (recId) {
+                                         Xrm.WebApi.updateRecord("tema_litogl_tp_campaniasanalitica", recId, { "tema_litogl_tp_int_etapaactualid": etapaNum })
+                                             .then(function(){ console.log("[DEBUG] Etapa actual actualizada via WebApi:", etapaNum); })
+                                             .catch(function(err){ console.warn("Fallo al actualizar via WebApi etapa actual:", err); });
+                                     }
+                                 } catch (e) { console.warn("No fue posible actualizar via WebApi etapa actual:", e); }
+                             }
+                         } catch (e) {
+                             console.warn("No fue posible actualizar tema_litogl_tp_int_etapaactualid:", e);
+                         }
+                     }
+                    // Cambiar estado general a "Completada" al completar etapa 2 (Ejecución)
+                    if (et && et.campo === "tema_ejecucion_completada") {
+                        CampaniaAnaliticasForm.Functions._marcarEstadoGeneralCompletada(formContext);
+                    }
+                    // Abrir modal de envío al laboratorio al completar Solicitud
+                    if (et && et.campo === "tema_solicitud_completada") {
+                        // Integrado: usa composer interno sin HTML externo
+                        CampaniaAnaliticasForm.Functions.abrirComposerEnvioLaboratorio(formContext);
+                    }
+                }
+            };
+            attr.addOnChange(handler);
+            CampaniaAnaliticasForm._onStageChangeHandler = handler;
+        });
+    },
+
+    enviarNotificacionesEtapa: function (formContext, et) {
+        try {
+            const campaignIdRaw = formContext.data.entity.getId();
+            if (!campaignIdRaw) return;
+            const campaignId = campaignIdRaw.replace(/[{}]/g, "");
+
+            const currentUserId = (Xrm.Utility.getGlobalContext().userSettings.userId || "").replace(/[{}]/g, "");
+            const currentUserName = Xrm.Utility.getGlobalContext().userSettings.userName || "";
+
+            // Mapear etapa -> tokens de equipo/grupo en campaña
+            const tokensByCampo = {
+                "tema_planificacion_completada": ["Planificación", "Director del Proyecto", "Director"],
+                "tema_ejecucion_completada": ["Ejecución", "Tecnico", "Técnico"],
+                "tema_solicitud_completada": ["Solicitud", "Edición", "Administración Edición"],
+                "tema_provision_completada": ["Provisión", "Contabilidad", "Administración Contabilidad"],
+                "tema_recepcion_muestra_completada": ["Recepción Muestra", "Muestra", "Laboratorio"],
+                "tema_recepcion_resultados_completado": ["Recepción Resultados", "Resultados", "Laboratorio"],
+                "tema_validacion_resultados_completados": ["Validación Resultados", "Validación", "Director", "Técnico"],
+                "tema_recepcion_proforma_completada": ["Recepción Proforma", "Proforma", "Contabilidad"],
+                "tema_validacion_proforma_completada": ["Validación Proforma", "Proforma", "Contabilidad"],
+                "tema_recepcion_factura_completada": ["Recepción Factura", "Factura", "Contabilidad"]
+            };
+            // Enviar solo para etapas 2–11 (inclusive)
+            const etapaNum = (et && et.actual && /^etapa\d+$/.test(et.actual)) ? parseInt(et.actual.replace('etapa',''), 10) : null;
+            if (!etapaNum || etapaNum < 2 || etapaNum > 11) {
+                return;
+            }
+
+            const campName = (formContext && formContext.data && formContext.data.entity && formContext.data.entity.getPrimaryAttributeValue)
+                ? formContext.data.entity.getPrimaryAttributeValue()
+                : "";
+
+            const stageLabel = (tokensByCampo[et && et.campo] && tokensByCampo[et.campo][0]) || (et && et.actual) || "";
+            const tokens = tokensByCampo[et && et.campo] || [];
+
+            CampaniaAnaliticasForm.Functions._obtenerMiembrosEquipoPorRoles(campaignId, tokens).then(function (miembros) {
+                // Fallback: si no hay miembros para los tokens, tomar todos los miembros por team
+                if (!miembros || miembros.length === 0) {
+                    return CampaniaAnaliticasForm.Functions._obtenerMiembrosEquipoTodosPorTeam(campaignId);
+                }
+                return Promise.resolve(miembros);
+            }).then(function(miembros){
+                console.log("[Notificaciones] Miembros equipo campaña:", miembros);
+                const destinatarios = (miembros || []).filter(function(u){
+                    try {
+                        const uid = (u.systemuserid || "").replace(/[{}]/g, "").toLowerCase();
+                        return uid && uid !== (currentUserId || "").toLowerCase();
+                    } catch (e) { return true; }
+                });
+                
+                if (destinatarios.length === 0) {
+                    try {
+                        formContext.ui.setFormNotification("No hay destinatarios configurados en equipos de campaña", "INFO", "noDestEtapa");
+                        setTimeout(function(){ formContext.ui.clearFormNotification("noDestEtapa"); }, 8000);
+                    } catch (e) {}
+                    console.log("No hay destinatarios para notificación de etapa:", et && et.campo);
+                    return;
+                }
+
+                const subject = `Etapa completada (${stageLabel}) en campaña ${campName}`;
+                const description = `Campaña: ${campName}\nEtapa completada: ${stageLabel}\nUsuario: ${currentUserName}`;
+
+                CampaniaAnaliticasForm.Functions._crearYEnviarEmailMultiple(formContext, subject, description, destinatarios);
+            }).catch(function(e){
+                console.warn("No fue posible enviar notificaciones de etapa:", e);
+            });
+        } catch (e) {
+            console.warn("No fue posible enviar notificaciones de etapa:", e);
+        }
+    }
+    ,
+
+    abrirModalEnvioLaboratorio: function (formContext) {
+        // Integrado: usa composer interno sin HTML externo
+        CampaniaAnaliticasForm.Functions.abrirComposerEnvioLaboratorio(formContext);
+    }
+    ,
+
+    abrirComposerEnvioLaboratorio: function (formContext) {
+        try {
+            const campaignIdRaw = formContext && formContext.data && formContext.data.entity ? formContext.data.entity.getId() : null;
+            if (!campaignIdRaw) return;
+            const campaignId = campaignIdRaw.replace(/[{}]/g, "");
+            const campName = (formContext && formContext.data && formContext.data.entity && formContext.data.entity.getPrimaryAttributeValue)
+                ? formContext.data.entity.getPrimaryAttributeValue() : "";
+ 
+            // Obtener URL carpeta y laboratorio desde campaña
+            const carpetaAttr = formContext.getAttribute("tema_litogl_tc_txt_carpeta_campana");
+            const carpetaUrl = carpetaAttr && carpetaAttr.getValue ? (carpetaAttr.getValue() || "") : "";
+ 
+            const labLookupAttr = formContext.getAttribute("tema_litogl_tp_bu_idlaboratorio");
+            const labLookupVal = labLookupAttr && labLookupAttr.getValue ? labLookupAttr.getValue() : null;
+            const labId = (labLookupVal && labLookupVal.length > 0 && labLookupVal[0].id) ? labLookupVal[0].id.replace(/[{}]/g, "") : null;
+ 
+            const loadLabInfo = labId
+                ? Xrm.WebApi.retrieveRecord("tema_litogl_tc_laboratorio", labId, "?$select=tema_name")
+                : Promise.resolve(null);
+ 
+            Promise.all([
+                loadLabInfo,
+                CampaniaAnaliticasForm.Functions._obtenerMiembrosEquipoTodosPorTeam(campaignId)
+            ]).then(function(results){
+                const lab = results[0];
+                const miembros = results[1] || [];
+ 
+                const recipientsParties = [];
+                let labName = "";
+                if (lab) {
+                    labName = lab.tema_name || "";
+                }
+ 
+                // Miembros del equipo (systemusers) - ÚNICOS DESTINATARIOS
+                miembros.forEach(function(u){
+                    recipientsParties.push({
+                        participationtypemask: 2, // To
+                        "partyid_systemuser@odata.bind": "/systemusers(" + u.systemuserid + ")"
+                    });
+                });
+ 
+                // Si no hay miembros de equipo, notificar y salir
+                if (recipientsParties.length === 0) {
+                    try {
+                        formContext.ui.setFormNotification("No hay equipo de campaña configurado o sin miembros", "INFO", "noEquipoCamp");
+                        setTimeout(function(){ formContext.ui.clearFormNotification("noEquipoCamp"); }, 8000);
+                    } catch (e) {}
+                    console.log("No hay equipo de campaña para correo de solicitud");
+                    return;
+                }
+ 
+                // Crear email y abrirlo para revisión
+                const subject = "Solicitud de envío de muestras – " + (campName || "Campaña");
+                const descriptionParts = [
+                    "Campaña: " + (campName || ""),
+                    labName ? ("Laboratorio: " + labName) : "",
+                    carpetaUrl ? ("Carpeta: " + carpetaUrl) : "",
+                    "Observaciones:"
+                ].filter(Boolean);
+                const activity = { subject: subject, description: descriptionParts.join("\n"), directioncode: true };
+ 
+                Xrm.WebApi.createRecord("email", activity).then(function(createRes){
+                    const emailId = createRes.id;
+                    const addPartiesPromises = recipientsParties.map(function(p){ return Xrm.WebApi.createRecord("activityparty", Object.assign({ "activityid_email@odata.bind": "/emails(" + emailId + ")" }, p)); });
+                    Promise.all(addPartiesPromises).then(function(){
+                        Xrm.Navigation.openForm({ entityName: "email", entityId: emailId });
+                    });
+                });
+            }).catch(function(e){
+                console.warn("No fue posible preparar el correo de solicitud:", e);
+            });
+
+        } catch (e) {
+            console.warn("No fue posible abrir el composer de envío al laboratorio:", e);
+        }
+    }
+    ,
+
+    sincronizarUrlLaboratorio: function (formContext) {
+        try {
+            var labLookupAttr = formContext.getAttribute("tema_litogl_tp_bu_idlaboratorio");
+            var campLabUrlAttr = formContext.getAttribute("tema_litogl_tp_txt_url_laboratorio");
+            if (!campLabUrlAttr) return; // el campo no existe en el formulario
+
+            var lookupVal = labLookupAttr ? labLookupAttr.getValue() : null;
+            if (!lookupVal || lookupVal.length === 0) {
+                try {
+                    var prevVal = campLabUrlAttr.getValue();
+                    if (prevVal) {
+                        campLabUrlAttr.setValue(null);
+                        try { formContext.data.entity.save(); } catch (e) {}
+                    }
+                } catch (e) {}
+                return;
+            }
+
+            var labId = (lookupVal[0].id || "").replace(/[{}]/g, "");
+            if (!labId) return;
+
+            Xrm.WebApi.retrieveRecord("tema_litogl_tc_laboratorio", labId, "?$select=tema_litogl_tc_txt_url_laboratorio").then(function (res) {
+                var url = res && res["tema_litogl_tc_txt_url_laboratorio"] ? res["tema_litogl_tc_txt_url_laboratorio"] : null;
+                var prevVal = campLabUrlAttr.getValue();
+                if (prevVal !== url) {
+                    campLabUrlAttr.setValue(url || null);
+                    try { formContext.data.entity.save(); } catch (e) {}
+                }
+
+                if (!url) {
+                    formContext.ui.setFormNotification("El laboratorio seleccionado no tiene URL configurada", "INFO", "notifLabSinUrl");
+                } else {
+                    formContext.ui.clearFormNotification("notifLabSinUrl");
+                }
+            }, function (error) {
+                console.warn("No fue posible recuperar la URL del laboratorio:", error);
+            });
+        } catch (e) {
+            console.warn("No fue posible sincronizar la URL de laboratorio:", e);
+        }
+    }
+    ,
+
+    _obtenerMiembrosEquipoPorRoles: function (campaignId, roleNameTokens) {
+        // Devuelve lista de usuarios (systemuser) pertenecientes a equipos de la campaña cuyos nombres/roles coinciden con tokens
+        return new Promise(function (resolve) {
+            const tokens = (roleNameTokens || []).map(t => (t || "").toLowerCase());
+            const query = `?$select=name,teamid,tema_litogl_te_op_rolcampania&$filter=_tema_litogl_te_bu_campania_value eq ${campaignId}&$expand=teammembership_association($select=fullname,internalemailaddress,systemuserid)`;
+            Xrm.WebApi.retrieveMultipleRecords("team", query).then(function (res) {
+                const usersMap = {};
+                (res.entities || []).forEach(function (team) {
+                    const teamName = (team.name || "").toLowerCase();
+                    const matchByName = tokens.some(tok => teamName.indexOf(tok) >= 0);
+                    // Si el nombre del equipo coincide con algún token, incluir sus miembros
+                    if (matchByName) {
+                        const members = team["teammembership_association"] || [];
+                        members.forEach(function (u) {
+                            const uid = (u.systemuserid || "").toLowerCase();
+                            if (!uid) return;
+                            usersMap[uid] = {
+                                systemuserid: u.systemuserid,
+                                fullname: u.fullname,
+                                internalemailaddress: u.internalemailaddress
+                            };
+                        });
+                    }
+                });
+                const users = Object.keys(usersMap).map(k => usersMap[k]);
+                resolve(users);
+            }).catch(function () {
+                resolve([]);
+            });
+        });
+    }
+    ,
+    _obtenerMiembrosEquipoTodosPorTeam: function (campaignId) {
+        return new Promise(function (resolve) {
+            try {
+                const query = `?$select=name,teamid&$filter=_tema_litogl_te_bu_campania_value eq ${campaignId}&$expand=teammembership_association($select=systemuserid,fullname,internalemailaddress)`;
+                Xrm.WebApi.retrieveMultipleRecords("team", query).then(function (res) {
+                    const usersMap = {};
+                    (res.entities || []).forEach(function (team) {
+                        const members = team["teammembership_association"] || [];
+                        members.forEach(function (u) {
+                            const uid = (u.systemuserid || "").toLowerCase();
+                            if (!uid) return;
+                            usersMap[uid] = {
+                                systemuserid: u.systemuserid,
+                                fullname: u.fullname,
+                                internalemailaddress: u.internalemailaddress
+                            };
+                        });
+                    });
+                    const users = Object.keys(usersMap).map(k => usersMap[k]);
+                    resolve(users);
+                }).catch(function (err) {
+                    console.warn("[Campaña-Equipos] Error en consulta (team):", err);
+                    resolve([]);
+                });
+            } catch (e) {
+                resolve([]);
+            }
+        });
+    }
+    ,
+    _crearYEnviarEmailMultiple: function (formContext, subject, description, recipientsSystemUsers) {
+        const activity = {
+            subject: subject,
+            description: description,
+            directioncode: true
+        };
+        Xrm.WebApi.createRecord("email", activity).then(function (createRes) {
+            const emailId = createRes.id;
+            const addPartiesPromises = (recipientsSystemUsers || []).map(function (u) {
+                const toActivityParty = {
+                    "partyid_systemuser@odata.bind": "/systemusers(" + u.systemuserid + ")",
+                    participationtypemask: 2,
+                    "activityid_email@odata.bind": "/emails(" + emailId + ")"
+                };
+                return Xrm.WebApi.createRecord("activityparty", toActivityParty);
+            });
+
+            Promise.all(addPartiesPromises).then(function () {
+                const req = new XMLHttpRequest();
+                req.open("POST", Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/SendEmail");
+                req.setRequestHeader("OData-MaxVersion", "4.0");
+                req.setRequestHeader("OData-Version", "4.0");
+                req.setRequestHeader("Accept", "application/json");
+                req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+                const body = { "EmailId": emailId, "IssueSend": true, "TrackingToken": "" };
+                req.onreadystatechange = function () {
+                    if (this.readyState === 4) {
+                        req.onreadystatechange = null;
+                        if (this.status >= 200 && this.status < 300) {
+                            console.log("Email enviado");
+                        } else {
+                            console.warn("Error al enviar email:", this.responseText);
+                        }
+                    }
+                };
+                req.send(JSON.stringify(body));
+            });
+        });
+    }
+    ,
+    /**
+     * Captura en sessionStorage los valores de proyecto y laboratorio
+     * asociados a la campaña abierta, para reutilizarlos en otros formularios.
+     */
+    cacheValoresContexto: function (formContext) {
+        try {
+            var campId = formContext.data.entity.getId();
+            if (!campId) return;
+            campId = campId.replace(/[{}]/g, "");
+
+            var proyectoAttr = formContext.getAttribute("tema_litogl_tp_bu_idproyecto");
+            var laboratorioAttr = formContext.getAttribute("tema_litogl_tp_bu_idlaboratorio");
+
+            var proyectoVal = proyectoAttr && proyectoAttr.getValue() && proyectoAttr.getValue()[0];
+            var laboratorioVal = laboratorioAttr && laboratorioAttr.getValue() && laboratorioAttr.getValue()[0];
+
+            var claveBase = "campania:" + campId + ":";
+            try {
+                if (proyectoVal) {
+                    sessionStorage.setItem(claveBase + "proyectoId", proyectoVal.id.replace(/[{}]/g, ""));
+                    sessionStorage.setItem(claveBase + "proyectoName", proyectoVal.name || "");
+                    sessionStorage.setItem(claveBase + "proyectoEntity", proyectoVal.entityType || "tema_litogl_tc_proyectos");
+                }
+                if (laboratorioVal) {
+                    sessionStorage.setItem(claveBase + "laboratorioId", laboratorioVal.id.replace(/[{}]/g, ""));
+                    sessionStorage.setItem(claveBase + "laboratorioName", laboratorioVal.name || "");
+                    sessionStorage.setItem(claveBase + "laboratorioEntity", laboratorioVal.entityType || "tema_litogl_tc_laboratorio");
+                }
+            } catch (e) {
+                // Algunos navegadores pueden bloquear sessionStorage; continuar sin bloquear el flujo
+                console.warn("No fue posible escribir en sessionStorage:", e);
+            }
+        } catch (e) {
+            console.warn("No fue posible cachear valores de campaña:", e);
+        }
+    }
+    ,
+    /**
+     * Sincroniza el campo de URL de laboratorio en la campaña
+     * desde el laboratorio seleccionado en el lookup.
+     */
+    sincronizarUrlLaboratorio: function (formContext) {
+        try {
+            var labLookupAttr = formContext.getAttribute("tema_litogl_tp_bu_idlaboratorio");
+            var campLabUrlAttr = formContext.getAttribute("tema_litogl_tp_txt_url_laboratorio");
+            if (!campLabUrlAttr) return; // el campo no existe en el formulario
+
+            var lookupVal = labLookupAttr ? labLookupAttr.getValue() : null;
+            if (!lookupVal || lookupVal.length === 0) {
+                // Si no hay laboratorio seleccionado, limpiar la URL en campaña y guardar si cambió
+                try {
+                    var prevVal = campLabUrlAttr.getValue();
+                    if (prevVal) {
+                        campLabUrlAttr.setValue(null);
+                        try { formContext.data.entity.save(); } catch (e) {}
+                    }
+                } catch (e) {}
+                return;
+            }
+
+            var labId = (lookupVal[0].id || "").replace(/[{}]/g, "");
+            if (!labId) return;
+
+            // Recuperar la URL del laboratorio y copiarla al campo de campaña
+            Xrm.WebApi.retrieveRecord("tema_litogl_tc_laboratorio", labId, "?$select=tema_litogl_tc_txt_url_laboratorio").then(function (res) {
+                var url = res["tema_litogl_tc_txt_url_laboratorio"] || null;
+                var prevVal = campLabUrlAttr.getValue();
+                if (prevVal !== url) {
+                    campLabUrlAttr.setValue(url);
+                    try { formContext.data.entity.save(); } catch (e) {}
+                }
+
+                // Mensaje informativo si el laboratorio no tiene URL
+                if (!url) {
+                    formContext.ui.setFormNotification("El laboratorio seleccionado no tiene URL configurada", "INFO", "notifLabSinUrl");
+                } else {
+                    formContext.ui.clearFormNotification("notifLabSinUrl");
+                }
+            }, function (error) {
+                console.warn("No fue posible recuperar la URL del laboratorio:", error);
+            });
+        } catch (e) {
+            console.warn("No fue posible sincronizar la URL de laboratorio:", e);
+        }
+    }
+    ,
+    _marcarEstadoGeneralCompletada: function (formContext) {
+        try {
+            var entName = "tema_litogl_tp_campaniasanalitica";
+            var recIdRaw = formContext && formContext.data && formContext.data.entity ? formContext.data.entity.getId() : null;
+            if (!recIdRaw) return;
+            var recId = recIdRaw.replace(/[{}]/g, "");
+            var attrName = "tema_litogl_tp_op_estadogeneral";
+
+            var setOnForm = function (value) {
+                try {
+                    var a = formContext.getAttribute(attrName);
+                    if (a && a.setValue) {
+                        a.setValue(value);
+                        try { formContext.data.entity.save(); } catch (e) {}
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            };
+
+            var tryGetValueFromFormOptions = function () {
+                try {
+                    var a = formContext.getAttribute(attrName);
+                    if (a && a.getOptions) {
+                        var opts = a.getOptions() || [];
+                        for (var i = 0; i < opts.length; i++) {
+                            var txt = (opts[i] && (opts[i].text || "")).toLowerCase();
+                            if (txt === "completada") return opts[i].value;
+                        }
+                    }
+                } catch (e) {}
+                return null;
+            };
+
+            var val = tryGetValueFromFormOptions();
+            if (val !== null && val !== undefined) {
+                if (!setOnForm(val)) {
+                    var body1 = {}; body1[attrName] = val;
+                    Xrm.WebApi.updateRecord(entName, recId, body1);
+                }
+                return;
+            }
+
+            // Fallback: metadata lookup to resolve option value by label
+            try {
+                Xrm.Utility.getEntityMetadata(entName, [attrName]).then(function (meta) {
+                    try {
+                        var attrs = meta && (meta.Attributes || meta.attributes);
+                        var aMeta = null;
+                        if (attrs && attrs.get) {
+                            aMeta = attrs.get(attrName);
+                        } else if (Array.isArray(attrs)) {
+                            aMeta = attrs.find(function (x) {
+                                return x && ((x.LogicalName || "").toLowerCase() === attrName);
+                            });
+                        }
+                        var options = (aMeta && aMeta.OptionSet && (aMeta.OptionSet.Options || aMeta.OptionSet.options)) || [];
+                        var found = null;
+                        for (var j = 0; j < options.length; j++) {
+                            var lbl = (options[j].Label && options[j].Label.UserLocalizedLabel && options[j].Label.UserLocalizedLabel.Label)
+                                || (options[j].label && options[j].label) || "";
+                            if ((lbl || "").toLowerCase() === "completada") { found = options[j]; break; }
+                        }
+                        var val2 = found ? ((found.Value !== undefined) ? found.Value : found.value) : null;
+                        if (val2 !== null && val2 !== undefined) {
+                            if (!setOnForm(val2)) {
+                                var body2 = {}; body2[attrName] = val2;
+                                Xrm.WebApi.updateRecord(entName, recId, body2);
+                            }
+                        } else {
+                            console.warn("No se encontró la opción 'Completada' en", attrName);
+                        }
+                    } catch (e) {}
+                }).catch(function () { });
+            } catch (e) { }
+        } catch (e) { }
+    }
+};
+
+
+
+// Avance manual de pestañas al pulsar "Fase Siguiente"
+function FaseSiguiente(executionContext) {
+    try {
+        const formContext = executionContext.getFormContext();
+        const etapas = [
+            { campo: "tema_planificacion_completada", actual: "etapa1", siguiente: "etapa2" },
+            { campo: "tema_ejecucion_completada", actual: "etapa2", siguiente: "etapa3" },
+            { campo: "tema_solicitud_completada", actual: "etapa3", siguiente: "etapa4" },
+            { campo: "tema_provision_completada", actual: "etapa4", siguiente: "etapa5" },
+            { campo: "tema_recepcion_muestra_completada", actual: "etapa5", siguiente: "etapa6" },
+            { campo: "tema_recepcion_resultados_completado", actual: "etapa6", siguiente: "etapa7" },
+            { campo: "tema_validacion_resultados_completados", actual: "etapa7", siguiente: "etapa8" },
+            { campo: "tema_recepcion_proforma_completada", actual: "etapa8", siguiente: "etapa9" },
+            { campo: "tema_validacion_proforma_completada", actual: "etapa9", siguiente: "etapa10" },
+            { campo: "tema_recepcion_factura_completada", actual: "etapa10", siguiente: "etapa11" }
+        ];
+
+        let lastCompletedIndex = -1;
+        for (let i = 0; i < etapas.length; i++) {
+            const a = formContext.getAttribute(etapas[i].campo);
+            if (a && a.getValue() === true) {
+                lastCompletedIndex = i;
+            }
+        }
+
+        if (lastCompletedIndex >= 0) {
+            const current = etapas[lastCompletedIndex];
+            const tabActual = formContext.ui.tabs.get(current.actual);
+            const tabNext = formContext.ui.tabs.get(current.siguiente);
+            if (tabNext) {
+                tabNext.setVisible(true);
+                try { tabNext.setFocus(); } catch (e) {}
+            }
+            if (tabActual) {
+                CampaniaAnaliticasForm.Functions.bloquearPestana(formContext, tabActual);
+            }
+        }
+    } catch (e) {
+        console.warn("No fue posible avanzar a la siguiente fase:", e);
+    }
+}
+
+// Botón de Ribbon: desbloquear la pestaña de la etapa activa
+function DesbloquearEtapaActual(primaryControl) {
+    try {
+        var formContext = (primaryControl && primaryControl.getAttribute) ? primaryControl : (Xrm.Page || null);
+        if (!formContext) return;
+
+        if (!CampaniaAnaliticasForm.Security.puedeDesbloquear()) {
+            Xrm.Navigation.openAlertDialog({ text: "No tienes permisos para desbloquear esta etapa." });
+            return;
+        }
+
+        var tab = CampaniaAnaliticasForm.Functions.getPestanaActivaEtapa(formContext);
+        if (!tab) {
+            Xrm.Navigation.openAlertDialog({ text: "No se pudo identificar la pestaña activa." });
+            return;
+        }
+
+        Xrm.Navigation.openConfirmDialog({ text: "¿Confirmas desbloquear la pestaña activa?" }).then(function (res) {
+            if (res && res.confirmed) {
+                CampaniaAnaliticasForm.Functions.desbloquearPestana(formContext, tab);
+                try {
+                    formContext.ui.setFormNotification("Pestaña desbloqueada", "INFO", "unlockStage");
+                    setTimeout(function(){ formContext.ui.clearFormNotification("unlockStage"); }, 5000);
+                } catch (e) {}
+            }
+        });
+    } catch (e) {
+        console.warn("No fue posible ejecutar DesbloquearEtapaActual:", e);
+    }
+}

@@ -1,0 +1,111 @@
+/********************************************************************************************
+ * Web Resource: Prefijar laboratorio en Paquetes por campaña
+ * Autor: PowerApps Pro
+ ********************************************************************************************/
+
+if (typeof PaquetesForm === "undefined") PaquetesForm = { __namespace: true };
+
+PaquetesForm.Events = {
+    OnLoad: function (executionContext) {
+        var formContext = (executionContext && executionContext.getFormContext)
+            ? executionContext.getFormContext()
+            : (typeof Xrm !== "undefined" && Xrm.Page ? Xrm.Page : null);
+        if (!formContext) {
+            console.warn("FormOnLoad: no se pudo obtener formContext (Paquetes por campaña)");
+            return;
+        }
+        PaquetesForm.Functions.prefijarLaboratorioDesdeCampania(formContext);
+
+        // Reaccionar si cambia la campaña
+        var campAttr = formContext.getAttribute("tema_litogl_tr_cp_idcampania");
+        if (campAttr && campAttr.addOnChange) {
+            campAttr.addOnChange(function () {
+                PaquetesForm.Functions.prefijarLaboratorioDesdeCampania(formContext);
+            });
+        }
+
+        // Auto-sincronizar Cantidad Ejecutada si es 0 y Cantidad Planificada > 0 al modificar
+        var cantPlanAttr = formContext.getAttribute("tema_litogl_tr_int_cantidadplanificada");
+        var cantEjecAttr = formContext.getAttribute("tema_litogl_tp_int_muestras_reales");
+        if (cantPlanAttr && cantPlanAttr.addOnChange && cantEjecAttr) {
+            cantPlanAttr.addOnChange(function () {
+                try {
+                    var plan = cantPlanAttr.getValue();
+                    var ejec = cantEjecAttr.getValue();
+                    if ((ejec === null || ejec === 0) && (plan && plan > 0)) {
+                        cantEjecAttr.setValue(plan);
+                    }
+                } catch (e) { console.warn("Auto-sync cantidades error:", e); }
+            });
+        }
+    }
+};
+
+// Función global esperada por el formulario: FormOnLoad
+function FormOnLoad(executionContext) {
+    try {
+        PaquetesForm.Events.OnLoad(executionContext);
+    } catch (e) {
+        console.error("Error en FormOnLoad (Paquetes por campaña):", e);
+    }
+}
+
+PaquetesForm.Functions = {
+    prefijarLaboratorioDesdeCampania: function (formContext) {
+        try {
+            var labAttr = formContext.getAttribute("tema_litogl_tr_cp_idlaboratorio");
+            var campLookup = formContext.getAttribute("tema_litogl_tr_cp_idcampania");
+            if (!campLookup) return;
+            var campVal = campLookup.getValue();
+            if (!campVal || campVal.length === 0) {
+                formContext.ui.setFormNotification("Selecciona una campaña para cargar el laboratorio", "INFO", "notifNoCampanaPaquetes");
+                return;
+            } else {
+                formContext.ui.clearFormNotification("notifNoCampanaPaquetes");
+            }
+            var campId = campVal[0].id.replace(/[{}]/g, "");
+
+            // Si ya hay laboratorio, respetar el valor
+            if (labAttr && labAttr.getValue()) return;
+
+            // 1) Intentar desde sessionStorage (capturado en Campañas)
+            try {
+                var claveBase = "campania:" + campId + ":";
+                var lid = sessionStorage.getItem(claveBase + "laboratorioId");
+                var lname = sessionStorage.getItem(claveBase + "laboratorioName");
+                var lentity = sessionStorage.getItem(claveBase + "laboratorioEntity") || "tema_litogl_tc_laboratorio";
+                if (lid && lname) {
+                    var lookupCached = [{ id: lid, name: lname, entityType: lentity }];
+                    labAttr.setValue(lookupCached);
+                    return;
+                }
+            } catch (e) { /* continuar con API */ }
+
+            // 2) Fallback: recuperar por API si no hay caché
+            Xrm.WebApi.retrieveRecord("tema_litogl_tp_campaniasanalitica", campId, "?$expand=tema_litogl_tp_bu_idlaboratorio($select=tema_litogl_tc_laboratorioid,name)").then(function (res) {
+                var laboratorio = res["tema_litogl_tp_bu_idlaboratorio"];
+                if (!laboratorio || !laboratorio["tema_litogl_tc_laboratorioid"]) {
+                    formContext.ui.setFormNotification("La campaña seleccionada no tiene laboratorio asociado", "INFO", "notifNoLaboratorioPaquetes");
+                    return;
+                }
+                formContext.ui.clearFormNotification("notifNoLaboratorioPaquetes");
+                var lookup = [{
+                    id: laboratorio["tema_litogl_tc_laboratorioid"],
+                    name: laboratorio.name,
+                    entityType: "tema_litogl_tc_laboratorio"
+                }];
+                labAttr.setValue(lookup);
+
+                // Guardar en caché para próximos formularios
+                try {
+                    var claveBase = "campania:" + campId + ":";
+                    sessionStorage.setItem(claveBase + "laboratorioId", laboratorio["tema_litogl_tc_laboratorioid"]);
+                    sessionStorage.setItem(claveBase + "laboratorioName", laboratorio.name || "");
+                    sessionStorage.setItem(claveBase + "laboratorioEntity", "tema_litogl_tc_laboratorio");
+                } catch (e) {}
+            });
+        } catch (e) {
+            console.warn("No fue posible prefijar laboratorio en Paquetes:", e);
+        }
+    }
+};

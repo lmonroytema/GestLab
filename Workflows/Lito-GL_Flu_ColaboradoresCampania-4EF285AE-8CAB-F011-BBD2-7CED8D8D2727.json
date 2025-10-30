@@ -1,0 +1,168 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 5,
+              "subscriptionRequest/entityname": "tema_litoglcampanaequipo",
+              "subscriptionRequest/scope": 4
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "438de9fa-6809-4b99-a6e2-54499bc5454e"
+          }
+        }
+      },
+      "actions": {
+        "List_rows-TablaEquiposFiltroRolTenico": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "entityName": "teams",
+              "$filter": "_tema_litogl_te_bu_campania_value eq  @{triggerOutputs()?['body/_crc1d_litogl_tr_bu_idcampana_value']} and tema_litogl_te_op_rolcampania eq 1"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "runAfter": {}
+        },
+        "EquipoAQuitar": {
+          "type": "Foreach",
+          "foreach": "@outputs('List_rows-TablaEquiposFiltroRolTenico')?['body/value']",
+          "actions": {
+            "RealizarUnaAcciónEnlazada-QuitarUsuarioDelEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "actionName": "Microsoft.Dynamics.CRM.RemoveMembersTeam",
+                  "recordId": "@items('EquipoAQuitar')?['teamid']",
+                  "item/Members": [
+                    {
+                      "systemuserid": "@triggerOutputs()?['body/_tema_LitoGL_tr_bu_idUsuario_value']"
+                    }
+                  ]
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "PerformBoundAction",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "List_rows-TablaEquiposFiltroRolTenico": [
+              "Succeeded"
+            ]
+          }
+        },
+        "EnumerarFilas-EquiposModificados": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "entityName": "teams",
+              "$filter": "_tema_litogl_te_bu_campania_value eq  @{triggerOutputs()?['body/_crc1d_litogl_tr_bu_idcampana_value']} and tema_litogl_te_op_rolcampania eq 1"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "runAfter": {
+            "EquipoAQuitar": [
+              "Succeeded"
+            ]
+          }
+        },
+        "AgregarUsuarioAEquipo": {
+          "type": "Foreach",
+          "foreach": "@outputs('EnumerarFilas-EquiposModificados')?['body/value']",
+          "actions": {
+            "RealizarUnaAcciónEnlazada-AgregarUsuarioDelEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "actionName": "Microsoft.Dynamics.CRM.AddMembersTeam",
+                  "recordId": "@items('AgregarUsuarioAEquipo')?['teamid']",
+                  "item/Members": [
+                    {
+                      "systemuserid": "@outputs('Get_a_row_by_ID-TablaProyectoEquipo')?['body/_tema_litogl_tr_bu_idusuario_value']"
+                    }
+                  ]
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "PerformBoundAction",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Get_a_row_by_ID-TablaProyectoEquipo": [
+              "SUCCEEDED"
+            ]
+          }
+        },
+        "Get_a_row_by_ID-TablaProyectoEquipo": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "entityName": "tema_litoglproyectoequipos",
+              "recordId": "@triggerOutputs()?['body/_tema_litogl_tr_bu_idusuario_value']"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "GetItem",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "runAfter": {
+            "EnumerarFilas-EquiposModificados": [
+              "Succeeded"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,149 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 5,
+              "subscriptionRequest/entityname": "tema_litoglproyectoequipo",
+              "subscriptionRequest/scope": 4
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "f9d17536-7418-4ea7-8ae8-1d5889803513"
+          }
+        }
+      },
+      "actions": {
+        "List_rows-TablaEquiposFiltroRolTenico": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "entityName": "teams",
+              "$filter": "_tema_litogl_te_bu_proyecto_value eq @{triggerOutputs()?['body/_tema_litogl_tr_bu_id_proyecto_value']} and tema_litogl_te_op_roltecnico eq 1"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "runAfter": {}
+        },
+        "EquipoAQuitar": {
+          "type": "Foreach",
+          "foreach": "@outputs('List_rows-TablaEquiposFiltroRolTenico')?['body/value']",
+          "actions": {
+            "RealizarUnaAcciónEnlazada-QuitarUsuarioDelEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "actionName": "Microsoft.Dynamics.CRM.RemoveMembersTeam",
+                  "recordId": "@items('EquipoAQuitar')?['teamid']",
+                  "item/Members": [
+                    {
+                      "systemuserid": "@triggerOutputs()?['body/_tema_LitoGL_tr_bu_idUsuario_value']"
+                    }
+                  ]
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "PerformBoundAction",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "List_rows-TablaEquiposFiltroRolTenico": [
+              "Succeeded"
+            ]
+          }
+        },
+        "EnumerarFilas-EquiposModificados": {
+          "type": "OpenApiConnection",
+          "inputs": {
+            "parameters": {
+              "entityName": "teams",
+              "$filter": "_tema_litogl_te_bu_proyecto_value eq @{triggerOutputs()?['body/_tema_litogl_tr_bu_id_proyecto_value']} and tema_litogl_te_op_roltecnico eq 1"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "runAfter": {
+            "EquipoAQuitar": [
+              "Succeeded"
+            ]
+          }
+        },
+        "AgregarUsuarioAEquipo": {
+          "type": "Foreach",
+          "foreach": "@outputs('EnumerarFilas-EquiposModificados')?['body/value']",
+          "actions": {
+            "RealizarUnaAcciónEnlazada-AgregarUsuarioDelEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "actionName": "Microsoft.Dynamics.CRM.AddMembersTeam",
+                  "recordId": "@items('AgregarUsuarioAEquipo')?['teamid']",
+                  "item/Members": [
+                    {
+                      "systemuserid": "@triggerOutputs()?['body/_tema_litogl_tr_bu_idusuario_value']"
+                    }
+                  ]
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "PerformBoundAction",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "EnumerarFilas-EquiposModificados": [
+              "Succeeded"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

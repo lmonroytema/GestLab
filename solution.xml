@@ -1,0 +1,475 @@
+<ImportExportXml version="9.2.25095.157" SolutionPackageVersion="9.2" languagecode="3082" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.25095.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.25101.00152">
+  <SolutionManifest>
+    <UniqueName>LitoGLTablas</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Lito-GL-Tablas" languagecode="3082" />
+    </LocalizedNames>
+    <Descriptions />
+    <Version>1.0.0.11</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>TEMA</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="TEMA" languagecode="3082" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>tema</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>10700</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="role" behavior="2" />
+      <RootComponent type="1" schemaName="sharepointdocumentlocation" behavior="1" />
+      <RootComponent type="1" schemaName="systemuser" behavior="1" />
+      <RootComponent type="1" schemaName="team" behavior="1" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaejecucion" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaequipo" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaincidencias" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanapaquetes" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaproformaslaboratorio" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaprovisiones" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanarecepcionmuestra" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanaresultadosanaliticos" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanasolicitud" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglcampanavalidacionanalitico" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglclientes" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogldocumentoadjuntos" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogletaparesponsable" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglpaquetesanaliticos" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglperfilesusuario" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litoglproyectoequipo" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogltipodocumento" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogl_tc_laboratorio" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogl_tc_proyectos" behavior="0" />
+      <RootComponent type="1" schemaName="tema_litogl_tp_campaniasanalitica" behavior="0" />
+      <RootComponent type="1" schemaName="tema_lito_gl_fp_campana" behavior="0" />
+      <RootComponent type="1" schemaName="tema_lito_gl_matriz" behavior="0" />
+      <RootComponent type="9" schemaName="tema_accion_provision" behavior="0" />
+      <RootComponent type="9" schemaName="tema_estado_incidencia" behavior="0" />
+      <RootComponent type="9" schemaName="tema_etapa_campana_incidencia" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litoglestadocampana" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litoglestadoproforma" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litoglperfilusuario" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litogltipocampania" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litogl_op_rolescampania" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litogl_op_rolesproyecto" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litogl_rolescolaboradores" behavior="0" />
+      <RootComponent type="9" schemaName="tema_litogl_tr_txt_moneda" behavior="0" />
+      <RootComponent type="9" schemaName="tema_lito_gl_tipo_cliente" behavior="0" />
+      <RootComponent type="9" schemaName="tema_moneda" behavior="0" />
+      <RootComponent type="9" schemaName="tema_observacion" behavior="0" />
+      <RootComponent type="9" schemaName="tema_opcion_severidad_incidencia" behavior="0" />
+      <RootComponent type="9" schemaName="tema_validacion" behavior="0" />
+      <RootComponent type="20" id="{209e33d3-6aab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{44237d76-d1aa-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{4d928ee3-98ab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{4e55bdff-8aab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{a077828a-84a3-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{bd3d3beb-98ab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{cab78e88-d1aa-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="20" id="{f79de696-32a8-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{168a9033-ab94-f011-b4cc-7ced8d15a5a6}" behavior="0" />
+      <RootComponent type="29" id="{35a05f44-53a5-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{38709192-01a3-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{3fe2e394-1394-f011-b4cc-7ced8d15a5a6}" behavior="0" />
+      <RootComponent type="29" id="{4ef285ae-8cab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{a7817604-e0a7-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{c81104bd-0c94-f011-b4cc-7ced8d15a5a6}" behavior="0" />
+      <RootComponent type="29" id="{d10ab166-83ab-f011-bbd2-7ced8d8d2727}" behavior="0" />
+      <RootComponent type="29" id="{e1656c64-2c93-f011-b4cc-7ced8d15a5a6}" behavior="0" />
+      <RootComponent type="60" id="{4e0934cb-c28c-f011-b4cc-7c1e525fa32f}" behavior="0" />
+      <RootComponent type="61" schemaName="tema_FieldCopyCamp" behavior="0" />
+      <RootComponent type="61" schemaName="tema_FieldCopyWebResource" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litoclean_logo" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litogl_ws_campanas_form" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litogl_ws_litoclean_homepague" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litogl_ws_litoclean_script" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litogl_ws_litoclean_styless" behavior="0" />
+      <RootComponent type="61" schemaName="tema_litogl_ws_proyectos_form" behavior="0" />
+      <RootComponent type="61" schemaName="tema_tema_litogl_ws_campana_equipo_form" behavior="0" />
+      <RootComponent type="61" schemaName="tema_tema_litogl_ws_incidencias" behavior="0" />
+      <RootComponent type="61" schemaName="tema_tema_litogl_ws_paquetes_form" behavior="0" />
+      <RootComponent type="61" schemaName="tema_tema_litogl_ws_solicitud_form" behavior="0" />
+      <RootComponent type="62" schemaName="tema_LitoGlGestionLaboratorios" behavior="0" />
+      <RootComponent type="80" schemaName="tema_LitoGlGestionLaboratorios" behavior="0" />
+      <RootComponent type="300" schemaName="tema_dashboardgeslab_a017c" behavior="0" />
+      <RootComponent type="300" schemaName="tema_formatosvarios_1f013" behavior="0" />
+      <RootComponent type="300" schemaName="tema_litoglgestionlaboratoriosdefaultcommandlibrary_c3423" behavior="0" />
+      <RootComponent type="300" schemaName="tema_resumenrolcontabilidad_186fd" behavior="0" />
+      <RootComponent type="300" schemaName="tema_resumenroledicin_f6bea" behavior="0" />
+      <RootComponent type="300" schemaName="tema_resumenroltcnico2_001ce" behavior="0" />
+      <RootComponent type="300" schemaName="tema_resumenroltcnico_8ea90" behavior="0" />
+    </RootComponents>
+    <MissingDependencies>
+      <MissingDependency>
+        <Required type="20" displayName="Abridor de aplicaciones" solution="AuthorizationCore (1.126.0.0)" id="{979144c2-989b-41a5-a146-6b3ea4130e8c}">
+          <package appName="Authorization Package" version="1.7.0.0">msft_PrivilegeChecker (1.7.0.0)</package>
+        </Required>
+        <Dependent type="80" schemaName="tema_LitoGlGestionLaboratorios" displayName="Gestión Laboratorios" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="msdyn_/Images/AppModule_Default_Icon.png" displayName="msdyn_/Images/AppModule_Default_Icon.png" solution="AppModuleWebResources (2.5)">
+          <package appName="AppModule Web Resources Package" version="2.5">AppModuleWebResources (2.5)</package>
+        </Required>
+        <Dependent type="80" schemaName="tema_LitoGlGestionLaboratorios" displayName="Gestión Laboratorios" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="msdyn_CopilotIcon.svg" displayName="msdyn_CopilotIcon.svg" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction" displayName="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="msdyn_CopilotSummarizeLibrary.js" displayName="msdyn_CopilotSummarizeLibrary.js" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction" displayName="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="mspcat_/box_24_regular.svg" displayName="mspcat_/box_24_regular.svg" solution="mspcat_CatalogPackaging (1.4.503.500)">
+          <package appName="PackageBuilderPackage" version="1.4.503.500">mspcat_CatalogPackaging (1.4.503.500)</package>
+        </Required>
+        <Dependent type="62" schemaName="tema_LitoGlGestionLaboratorios" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="61" schemaName="mspp_publishing_state_transition_rules.svg" displayName="mspp_publishing_state_transition_rules.svg" solution="PowerPages_AppResources (1.0.2505.0)">
+          <package appName="Power Pages Core Package" version="1.1.2508.192">PowerPages_Core (1.1.2508.192)</package>
+        </Required>
+        <Dependent type="62" schemaName="tema_LitoGlGestionLaboratorios" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="Lito-Gl-Campaña-Incidencias activo" displayName="Lito-Gl-Campaña-Incidencias activo" parentSchemaName="tema_litoglcampanaincidencias" parentDisplayName="Lito-Gl-Campaña-Incidencias" id="{0d6a1eca-9c8a-4f9f-bccd-95859e3482f0}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="📈 Campañas" displayName="📈 Campañas" parentSchemaName="tema_litogl_tp_campaniasanalitica" parentDisplayName="Lito-Gl-Campaña-Analitica" id="{1555282c-000a-48b5-8db6-b0b8f81cc014}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="Lito-Gl-Campaña-Paquetes activo" displayName="Lito-Gl-Campaña-Paquetes activo" parentSchemaName="tema_litoglcampanapaquetes" parentDisplayName="Lito-Gl-Campaña-Paquetes" id="{2a02a4a4-6125-426f-ba2b-f97de0c8792e}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="Clientes" displayName="Clientes" parentSchemaName="tema_litoglclientes" parentDisplayName="Lito-Gl-Clientes" id="{4af23fbf-6eae-4e00-9cff-8effc63ac1ca}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="Validación de Resultados" displayName="Validación de Resultados" parentSchemaName="tema_litoglcampanapaquetes" parentDisplayName="Lito-Gl-Campaña-Paquetes" id="{50d6614e-81a3-f011-bbd2-7ced8d8d2727}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="26" schemaName="Proyectos Activos" displayName="Proyectos Activos" parentSchemaName="tema_litogl_tc_proyectos" parentDisplayName="Lito-Gl_tc_Proyectos" id="{e934c53e-c8be-4378-858e-28ad87d01f91}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="66" schemaName="MscrmControls.Grid.GridControl" displayName="MscrmControls.Grid.GridControl" solution="BaseCustomControlsCore (9.0.2510.1500)">
+          <package appName="Base Custom Controls" version="9.0.2510.1500">BaseCustomControlsCore (9.0.2510.1500)</package>
+        </Required>
+        <Dependent type="60" displayName="Información" parentDisplayName="Lito-Gl-Campaña-Analitica" id="{b9cfa963-7572-4f45-830e-bb91081f3461}" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.AvailableOnForm!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.AvailableOnForm!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.AvailableOnForm!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.AvailableOnForm!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanSavePrimary!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanSavePrimary!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanSavePrimary!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanSavePrimary!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanSavePrimaryEntityType!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanSavePrimaryEntityType!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanSavePrimaryEntityType!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanSavePrimaryEntityType!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CanWritePrimary!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.CanWritePrimary!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CanWritePrimary!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CanWritePrimary!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.CopilotClientApi!1" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.CopilotClientApi!1">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.CopilotClientApi!1" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.CopilotClientApi!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.EnableCopilotSummarizeCommandButton!1" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.EnableCopilotSummarizeCommandButton!1">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.EnableCopilotSummarizeCommandButton!1" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.EnableCopilotSummarizeCommandButton!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.EnableCopilotSummarizeFeatures!1" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.EnableCopilotSummarizeFeatures!1">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.EnableCopilotSummarizeFeatures!1" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.EnableCopilotSummarizeFeatures!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.FormStateNotNew!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.FormStateNotNew!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.FormStateNotNew!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.FormStateNotNew!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.FormStateNotNew!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.FormStateNotNew!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.FormStateNotNew!0" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.FormStateNotNew!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.HideOnMobile!0" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.HideOnMobile!0">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.HideOnMobile!0" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.HideOnMobile!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.InitializeCopilotSidePaneOnBoot!1" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.InitializeCopilotSidePaneOnBoot!1">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.InitializeCopilotSidePaneOnBoot!1" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.InitializeCopilotSidePaneOnBoot!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.IsAppCopilotEnabled!0" solution="msdyn_AppCopilotFeatures (9.2.2025062.250606027)" id.uniquename="msdyn_Mscrm.IsAppCopilotEnabled!0">
+          <package appName="PowerAppsAppCopilotApp Package" version="1.0.0.2">msdyn_SuggestedAction (1.0.0.2)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.IsAppCopilotEnabled!0" id.appactionid.uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.IsAppCopilotEnabled!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.IsBPFEntityCustomizationFeatureEnabled!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.IsBPFEntityCustomizationFeatureEnabled!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.IsBPFEntityCustomizationFeatureEnabled!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.IsBPFEntityCustomizationFeatureEnabled!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.IsEntityAvailableForUserInMocaOffline!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.IsEntityAvailableForUserInMocaOffline!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.IsEntityAvailableForUserInMocaOffline!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.IsEntityAvailableForUserInMocaOffline!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.IsPUV2EntityCustomizationEnabled!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.IsPUV2EntityCustomizationEnabled!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.IsPUV2EntityCustomizationEnabled!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.IsPUV2EntityCustomizationEnabled!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.OutlookRenderTypeWeb!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.OutlookRenderTypeWeb!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.OutlookRenderTypeWeb!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.OutlookRenderTypeWeb!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.OutlookRenderTypeWeb!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.OutlookRenderTypeWeb!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.OutlookRenderTypeWeb!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.OutlookRenderTypeWeb!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.OutlookRenderTypeWeb!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.OutlookRenderTypeWeb!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.OutlookRenderTypeWeb!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryEntityHasStatecode!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryEntityHasStatecode!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryEntityHasStatecode!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryEntityHasStatecode!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryEntityHasStatecode!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryEntityHasStatecode!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryEntityHasStatecode!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryEntityIsBPFEntity!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryEntityIsBPFEntity!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryEntityIsBPFEntity!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.OpenActiveStage!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryEntityIsBPFEntity!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsActive!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsActive!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsActive!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsActive!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsActive!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsActive!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsActive!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsActive!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsActivity!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsActivity!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsActivity!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Close!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsActivity!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsActivity!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsActivity!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsActivity!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsActivity!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsInactive!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsInactive!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsInactive!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsInactive!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsNotActivity!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsNotActivity!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsNotActivity!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Activate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsNotActivity!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.PrimaryIsNotActivity!1" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.PrimaryIsNotActivity!1">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.PrimaryIsNotActivity!1" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.Deactivate!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.PrimaryIsNotActivity!1" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="appactionrule" displayName="msdyn_Mscrm.ReadPrimaryPermission!0" solution="msdyn_SystemAppActions (9.1.0.57)" id.uniquename="msdyn_Mscrm.ReadPrimaryPermission!0">
+          <package appName="PowerAppsActions Package" version="9.1.0.57">PowerAppsActions_Anchor (9.1.0.57)</package>
+        </Required>
+        <Dependent type="appaction_appactionrule_classicrules" displayName="appactionid.uniquename=tema__Mscrm.Form.%7B!EntityLogicalName%7D.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0,appactionruleid.uniquename=msdyn_Mscrm.ReadPrimaryPermission!0" id.appactionid.uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0" id.appactionruleid.uniquename="msdyn_Mscrm.ReadPrimaryPermission!0" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="SettingDefinition" displayName="AppChannel" solution="msdyn_AppFrameworkInfraExtensions (1.0.0.15)" id.uniquename="AppChannel">
+          <package appName="PowerAppsAppFramework Package" version="1.0.0.23">PowerAppsAppFramework_Anchor (1.0.0.23)</package>
+        </Required>
+        <Dependent type="AppSetting" displayName="parentappmoduleid.uniquename=tema_LitoGlGestionLaboratorios,settingdefinitionid.uniquename=AppChannel" id.parentappmoduleid.uniquename="tema_LitoGlGestionLaboratorios" id.settingdefinitionid.uniquename="AppChannel" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="role" displayName="Role" parentSchemaName="" solution="AuthorizationCore (1.126.0.0)" />
+        <Dependent type="1" schemaName="role" displayName="Role" />
+      </MissingDependency>
+    </MissingDependencies>
+  </SolutionManifest>
+</ImportExportXml>

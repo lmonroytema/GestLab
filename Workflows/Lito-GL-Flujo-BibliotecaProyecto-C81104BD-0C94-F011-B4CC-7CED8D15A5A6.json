@@ -1,0 +1,310 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedsharepointonline_7c171"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "Dataverse Root SP Site Dev Record GUID (tema_DataverseRootSPSiteDevRecordGUID)": {
+          "defaultValue": "f020c461-ba88-f011-b4cc-7c1e525fa32f",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_DataverseRootSPSiteDevRecordGUID",
+            "description": "Es el ID del Sitio Sharepoint Producción. Se encuentra en la tabla  Sharepoint Site, en la columna: SharePoint Site ID. El de Produccion:  y el de Desarrollo: f020c461-ba88-f011-b4cc-7c1e525fa32f"
+          }
+        },
+        "Sitio Sharepoint (tema_SitioSharepoint)": {
+          "defaultValue": "https://grupotemalitoclean.sharepoint.com/sites/PE-TL-GGPI-PRUEBASDESARROLLOS",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_SitioSharepoint",
+            "description": "URL Web del entorno de desarrollo. Por default se coloca cualquier dirección web. El de produccion es:       y el de desarrollo es: "
+          }
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "tema_litogl_tc_proyectos",
+              "subscriptionRequest/scope": 4,
+              "subscriptionRequest/filterexpression": "statecode eq 0 and tema_codigo_proyecto ne null"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "d29ed424-435c-402a-a113-d4fd8f6cce88"
+          }
+        }
+      },
+      "actions": {
+        "Initialize_variable_Ubicacion_Documento": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Document Location Var",
+                "type": "string"
+              }
+            ]
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "bedbf64a-410f-4d0d-bd3f-a755fb82a23a"
+          }
+        },
+        "Scope": {
+          "type": "Scope",
+          "actions": {
+            "Compose_Nombre_Proyecto": {
+              "type": "Compose",
+              "inputs": "@{triggerOutputs()?['body/tema_codigo_proyecto']} Lito GL Libreria",
+              "metadata": {
+                "operationMetadataId": "b2797e25-2560-4450-9ea4-a58cd165056f"
+              }
+            },
+            "Control_Compania_Nueva": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@length(outputs('Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl')?['body/value'])",
+                      0
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Compose_URI_para_HTTP": {
+                  "type": "Compose",
+                  "inputs": "@{concat('_api/web/lists/GetByTitle(''', outputs('Compose_Nombre_Proyecto'), ''')')}\n",
+                  "metadata": {
+                    "operationMetadataId": "da14f0d1-6ae4-49a3-9bb8-06a9bd82c5ce"
+                  }
+                },
+                "Send_an_HTTP_request_to_SharePoint_Crear_Biblioteca_SP": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/lists",
+                      "parameters/headers": {
+                        "content-type:": "application/json;odata=verbose"
+                      },
+                      "parameters/body": "{\n\"BaseTemplate\": 101,\n\"Description\": \"This is a SharePoint Library called: @{outputs('Compose_Nombre_Proyecto')}\",\n\"Title\": \"@{outputs('Compose_Nombre_Proyecto')}\"\n}"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "HttpRequest",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Compose_URI_para_HTTP": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "5f356681-52dd-4935-8f54-d904924d57d5"
+                  }
+                },
+                "Compose_Dataverse_Main_SharePoint_Site_Record_GUID": {
+                  "type": "Compose",
+                  "inputs": "@parameters('Dataverse Root SP Site Dev Record GUID (tema_DataverseRootSPSiteDevRecordGUID)')",
+                  "runAfter": {
+                    "Send_an_HTTP_request_to_SharePoint_Crear_Biblioteca_SP": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "5a27e7e1-92b2-4a7f-b7e2-e115a67681e3"
+                  }
+                },
+                "Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "entityName": "sharepointdocumentlocations",
+                      "item/name": "@outputs('Compose_Nombre_Proyecto')",
+                      "item/relativeurl": "@outputs('Compose_Nombre_Proyecto')",
+                      "item/parentsiteorlocation_sharepointsite@odata.bind": "sharepointsites(@{outputs('Compose_Dataverse_Main_SharePoint_Site_Record_GUID')})"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                      "operationId": "CreateRecord",
+                      "connectionName": "shared_commondataserviceforapps"
+                    }
+                  },
+                  "runAfter": {
+                    "Compose_Dataverse_Main_SharePoint_Site_Record_GUID": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "c2bd45a1-37e5-4979-8820-24ac27cd71e6"
+                  }
+                },
+                "Set_variable_Ubicacion_Biblioteca_Nueva_en_SP": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "Document Location Var",
+                    "value": "@outputs('Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location')?['body/sharepointdocumentlocationid']"
+                  },
+                  "runAfter": {
+                    "Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "0259bb20-dc8c-4a5d-bb48-385a1e01a53b"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_Ubicacion_Biblioteca_Existente_en_SP": {
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Document Location Var",
+                      "value": "@outputs('Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl')?['body/value']?[0]?['sharepointdocumentlocationid']"
+                    },
+                    "metadata": {
+                      "operationMetadataId": "0325b4e8-1b1a-404f-9478-c63305dd0f1d"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "80ae32e0-15cd-467b-a463-56a75e1b50d1"
+              }
+            },
+            "Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "sharepointdocumentlocations",
+                  "$filter": "relativeurl eq '@{outputs('Compose_Nombre_Proyecto')}'"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_Nombre_Proyecto": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "163c91f9-e9b5-41d6-9e34-e1de4f7d0756"
+              }
+            }
+          },
+          "runAfter": {
+            "Initialize_variable_Ubicacion_Documento": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "fc0d9588-e407-497a-9e97-1af9e56ff10c"
+          }
+        },
+        "Scope_URL_Biblioteca_Proyecto_en_SP": {
+          "type": "Scope",
+          "actions": {
+            "Compose_URL_Biblioteca_en_SP_": {
+              "type": "Compose",
+              "inputs": "@concat(\r\n  outputs('Compose_Sitio_SP'),\r\n  '/',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\r\n  '?id=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')),\r\n  '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\r\n  '&listurl=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')),\r\n  '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\r\n)\r\n",
+              "runAfter": {
+                "Compose_Sitio_SP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Compose_Sitio_SP": {
+              "type": "Compose",
+              "inputs": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+              "metadata": {
+                "operationMetadataId": "d4b49990-5f4c-40aa-9376-f645f84c0015"
+              }
+            },
+            "Actualizar_una_fila_-_Tabla_Proyetos": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tc_proyectoses",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tc_proyectosid']",
+                  "item/tema_litogl_tc_txt_carpeta_proyecto": "@outputs('Compose_URL_Biblioteca_en_SP_')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Biblioteca_en_SP_": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Scope": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "94cded11-1db1-45d7-b6fa-7e3aac62327a"
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

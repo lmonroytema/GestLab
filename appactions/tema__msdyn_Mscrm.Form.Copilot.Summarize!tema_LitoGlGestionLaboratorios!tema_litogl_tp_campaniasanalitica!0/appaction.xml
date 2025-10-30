@@ -1,0 +1,37 @@
+<appaction uniquename="tema__msdyn_Mscrm.Form.Copilot.Summarize!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0">
+  <appmoduleid>
+    <uniquename>tema_LitoGlGestionLaboratorios</uniquename>
+  </appmoduleid>
+  <buttonlabeltext default="Resumir">
+    <label description="Resumir" languagecode="3082" />
+  </buttonlabeltext>
+  <buttontooltiptitle default="Resumir el registro">
+    <label description="Resumir el registro" languagecode="3082" />
+  </buttontooltiptitle>
+  <context>1</context>
+  <contextentity>
+    <logicalname>tema_litogl_tp_campaniasanalitica</logicalname>
+  </contextentity>
+  <contextvalue>tema_litogl_tp_campaniasanalitica</contextvalue>
+  <hidden>1</hidden>
+  <iconwebresourceid>
+    <webresourceid>1316f45f-d73b-ee11-bdf2-000d3a334de7</webresourceid>
+  </iconwebresourceid>
+  <iscustomizable>1</iscustomizable>
+  <isdisabled>0</isdisabled>
+  <isgrouptitlehidden>0</isgrouptitlehidden>
+  <location>0</location>
+  <name>msdyn_Mscrm.Form.Copilot.Summarize</name>
+  <onclickeventjavascriptfunctionname>openCopilotChatWindowAndSummarizeTheRecord</onclickeventjavascriptfunctionname>
+  <onclickeventjavascriptparameters>[]</onclickeventjavascriptparameters>
+  <onclickeventjavascriptwebresourceid>
+    <webresourceid>16cbaa5b-e53b-ee11-bdf2-000d3a334de7</webresourceid>
+  </onclickeventjavascriptwebresourceid>
+  <onclickeventtype>2</onclickeventtype>
+  <origin>0</origin>
+  <sequence>100100047.0000000000</sequence>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <type>0</type>
+  <visibilitytype>2</visibilitytype>
+</appaction>

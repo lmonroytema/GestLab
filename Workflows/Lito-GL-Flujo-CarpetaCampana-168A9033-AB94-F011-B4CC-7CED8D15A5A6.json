@@ -1,0 +1,839 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedsharepointonline_7c171"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "Dataverse Root SP Site Dev Record GUID (tema_DataverseRootSPSiteDevRecordGUID)": {
+          "defaultValue": "f020c461-ba88-f011-b4cc-7c1e525fa32f",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_DataverseRootSPSiteDevRecordGUID",
+            "description": "Es el ID del Sitio Sharepoint Producción. Se encuentra en la tabla  Sharepoint Site, en la columna: SharePoint Site ID. El de Produccion:  y el de Desarrollo: f020c461-ba88-f011-b4cc-7c1e525fa32f"
+          }
+        },
+        "Sitio Sharepoint (tema_SitioSharepoint)": {
+          "defaultValue": "https://grupotemalitoclean.sharepoint.com/sites/PE-TL-GGPI-PRUEBASDESARROLLOS",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_SitioSharepoint",
+            "description": "URL Web del entorno de desarrollo. Por default se coloca cualquier dirección web. El de produccion es:       y el de desarrollo es: "
+          }
+        }
+      },
+      "triggers": {
+        "Cuando_se_agrega,_modifica_o_elimina_una_fila": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "tema_litogl_tp_campaniasanalitica",
+              "subscriptionRequest/scope": 4,
+              "subscriptionRequest/filterexpression": "statecode eq 0 and tema_litogl_tp_cp_idcampania ne null"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "ad3826f3-3177-40b6-9153-503e50e9c789"
+          }
+        }
+      },
+      "actions": {
+        "Inicializar_variable": {
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Document Location Var",
+                "type": "string"
+              }
+            ]
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "4cecce13-8f75-4646-9577-95332298c9c6"
+          }
+        },
+        "Scope_Biblioteca_SP": {
+          "type": "Scope",
+          "actions": {
+            "Get_a_row_by_ID_Tabla_Proyectos": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tc_proyectoses",
+                  "recordId": "@triggerOutputs()?['body/_tema_litogl_tp_bu_idproyecto_value']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "GetItem",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "42fd3505-86df-4701-a335-f3fc24a07046"
+              }
+            },
+            "Compose_Nombre_Proyecto": {
+              "type": "Compose",
+              "inputs": "@{outputs('Get_a_row_by_ID_Tabla_Proyectos')?['body/tema_codigo_proyecto']} Lito GL Libreria",
+              "runAfter": {
+                "Get_a_row_by_ID_Tabla_Proyectos": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5d6c8f90-90b4-4522-94ef-229fe1a208eb"
+              }
+            },
+            "Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "sharepointdocumentlocations",
+                  "$filter": "relativeurl eq '@{outputs('Compose_Nombre_Proyecto')}'"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_Nombre_Proyecto": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "163c91f9-e9b5-41d6-9e34-e1de4f7d0756"
+              }
+            },
+            "Control_Proyecto_Nuevo": {
+              "type": "If",
+              "expression": {
+                "and": [
+                  {
+                    "equals": [
+                      "@length(outputs('Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl')?['body/value'])",
+                      0
+                    ]
+                  }
+                ]
+              },
+              "actions": {
+                "Compose_URI_para_HTTP": {
+                  "type": "Compose",
+                  "inputs": "@{concat('_api/web/lists/GetByTitle(''', outputs('Compose_Nombre_Proyecto'), ''')')}\n",
+                  "metadata": {
+                    "operationMetadataId": "da14f0d1-6ae4-49a3-9bb8-06a9bd82c5ce"
+                  }
+                },
+                "Send_an_HTTP_request_to_SharePoint_Crear_Biblioteca_SP": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                      "parameters/method": "POST",
+                      "parameters/uri": "_api/web/lists",
+                      "parameters/headers": {
+                        "content-type:": "application/json;odata=verbose"
+                      },
+                      "parameters/body": "{\n\"BaseTemplate\": 101,\n\"Description\": \"This is a SharePoint Library called: @{outputs('Compose_Nombre_Proyecto')}\",\n\"Title\": \"@{outputs('Compose_Nombre_Proyecto')}\"\n}"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                      "operationId": "HttpRequest",
+                      "connectionName": "shared_sharepointonline"
+                    }
+                  },
+                  "runAfter": {
+                    "Compose_URI_para_HTTP": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "5f356681-52dd-4935-8f54-d904924d57d5"
+                  }
+                },
+                "Compose_Dataverse_Main_SharePoint_Site_Record_GUID": {
+                  "type": "Compose",
+                  "inputs": "@parameters('Dataverse Root SP Site Dev Record GUID (tema_DataverseRootSPSiteDevRecordGUID)')",
+                  "runAfter": {
+                    "Send_an_HTTP_request_to_SharePoint_Crear_Biblioteca_SP": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "5a27e7e1-92b2-4a7f-b7e2-e115a67681e3"
+                  }
+                },
+                "Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location": {
+                  "type": "OpenApiConnection",
+                  "inputs": {
+                    "parameters": {
+                      "entityName": "sharepointdocumentlocations",
+                      "item/name": "@outputs('Compose_Nombre_Proyecto')",
+                      "item/relativeurl": "@outputs('Compose_Nombre_Proyecto')",
+                      "item/parentsiteorlocation_sharepointsite@odata.bind": "sharepointsites(@{outputs('Compose_Dataverse_Main_SharePoint_Site_Record_GUID')})"
+                    },
+                    "host": {
+                      "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                      "operationId": "CreateRecord",
+                      "connectionName": "shared_commondataserviceforapps"
+                    }
+                  },
+                  "runAfter": {
+                    "Compose_Dataverse_Main_SharePoint_Site_Record_GUID": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "c2bd45a1-37e5-4979-8820-24ac27cd71e6"
+                  }
+                },
+                "Set_variable_Ubicacion_Biblioteca_Nueva_en_SP": {
+                  "type": "SetVariable",
+                  "inputs": {
+                    "name": "Document Location Var",
+                    "value": "@outputs('Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location')?['body/sharepointdocumentlocationid']"
+                  },
+                  "runAfter": {
+                    "Add_a_new_row_Nueva_Biblioteca_SP_en_tabla_Document_Location": [
+                      "Succeeded"
+                    ]
+                  },
+                  "metadata": {
+                    "operationMetadataId": "0259bb20-dc8c-4a5d-bb48-385a1e01a53b"
+                  }
+                }
+              },
+              "else": {
+                "actions": {
+                  "Set_variable_Ubicacion_Biblioteca_Existente_en_SP": {
+                    "type": "SetVariable",
+                    "inputs": {
+                      "name": "Document Location Var",
+                      "value": "@outputs('Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl')?['body/value']?[0]?['sharepointdocumentlocationid']"
+                    },
+                    "metadata": {
+                      "operationMetadataId": "0325b4e8-1b1a-404f-9478-c63305dd0f1d"
+                    }
+                  }
+                }
+              },
+              "runAfter": {
+                "Get_a_row_by_ID_Proyecto_en_Tabla_Document_Locations_por_relativeurl": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "80ae32e0-15cd-467b-a463-56a75e1b50d1"
+              }
+            }
+          },
+          "runAfter": {
+            "Inicializar_variable": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1175470e-e3c2-462f-81b1-aeacb24d6d34"
+          }
+        },
+        "Scope_Carpeta_Campaña": {
+          "type": "Scope",
+          "actions": {
+            "Compose_Nombre_Carpeta_Campaña": {
+              "type": "Compose",
+              "inputs": "Campaña  @{triggerOutputs()?['body/tema_litogl_tp_cp_idcampania']}",
+              "metadata": {
+                "operationMetadataId": "f328b83f-6919-4129-b52e-a167d46362f5"
+              }
+            },
+            "Create_new_folder_Carpeta_Campaña_en_SP": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@outputs('Compose_Nombre_Carpeta_Campaña')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Compose_Nombre_Carpeta_Campaña": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "68a142d0-6065-45e9-87c5-0050020fedae"
+              }
+            },
+            "Get_a_row_by_ID_Campaña_en_Tabla_Document_Locations": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "sharepointdocumentlocations",
+                  "recordId": "@variables('Document Location Var')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "GetItem",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Create_new_folder_Carpeta_Campaña_en_SP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "96011581-cb18-40ad-8fe5-2a598554a2bd"
+              }
+            },
+            "Add_a_new_row_Carpeta_Creada_SP": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "sharepointdocumentlocations",
+                  "item/name": "@outputs('Compose_Nombre_Carpeta_Campaña')",
+                  "item/servicetype": 0,
+                  "item/relativeurl": "@outputs('Compose_Nombre_Carpeta_Campaña')",
+                  "item/parentsiteorlocation_sharepointdocumentlocation@odata.bind": "@outputs('Get_a_row_by_ID_Campaña_en_Tabla_Document_Locations')?['body/@odata.id']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "CreateRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Get_a_row_by_ID_Campaña_en_Tabla_Document_Locations": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "27ebe775-8c0b-41c6-8073-c45923d9536f"
+              }
+            },
+            "Relate_rows_Tarea_en_Dataverse_y_Carpeta_Tarea_en_SP": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']\n",
+                  "associationEntityRelationship": "tema_LitoGl_tp_CampaniasAnalitica__SharePointDocumentLocation",
+                  "item/@odata.id": "@outputs('Add_a_new_row_Carpeta_Creada_SP')?['body/@odata.id']"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "AssociateEntities",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Add_a_new_row_Carpeta_Creada_SP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "76010365-b8bb-444f-8f0b-525bfdedbcc7"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_Biblioteca_SP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "34071ef3-8e64-4ebc-a83e-0fcc5969944a"
+          }
+        },
+        "Scope_URL_Carpeta_Campaña_en_SP": {
+          "type": "Scope",
+          "actions": {
+            "Compose_URL_Campaña_en_SP_": {
+              "type": "Compose",
+              "inputs": "@concat(\r\n  outputs('Compose_Sitio_SP'), '/', \r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\r\n  '?id=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')),\r\n  '&listurl=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\r\n  '&newTargetListUrl=',\r\n  concat(\r\n    outputs('Compose_Sitio_SP'), '/',\r\n    encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\r\n  )\r\n)",
+              "runAfter": {
+                "Compose_Sitio_SP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Compose_Sitio_SP": {
+              "type": "Compose",
+              "inputs": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+              "metadata": {
+                "operationMetadataId": "d4b49990-5f4c-40aa-9376-f645f84c0015"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tc_txt_carpeta_campana": "@outputs('Compose_URL_Campaña_en_SP_')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Campaña_en_SP_": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_Carpeta_Campaña": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "94cded11-1db1-45d7-b6fa-7e3aac62327a"
+          }
+        },
+        "Scope_Subcarpeta_Evidencias_Campo": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder_Evidencias_Campo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/01-EvidenciasCampo"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "ba1cb10a-9a40-4417-ac95-cf56139968be"
+              }
+            },
+            "Compose_URL_Evidencias_Campo": {
+              "type": "Compose",
+              "inputs": "@concat(\n  outputs('Compose_Sitio_SP'), '/', \n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\n  '/Forms/AllItems.aspx',\n  '?id=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\n  encodeUriComponent('01-EvidenciasCampo'),\n  '&newTargetListUrl=https%3A%2F%2Fgrupotemalitoclean.sharepoint.com%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\n)\n",
+              "runAfter": {
+                "Create_new_folder_Evidencias_Campo": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_2": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_evidencias_campo": "@outputs('Compose_URL_Evidencias_Campo')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Evidencias_Campo": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "be0d66b8-0656-4ddf-876d-020eacd304cf"
+          }
+        },
+        "Scope_Subcarpeta_Constancia_Pedido": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder_Constancia_Pedido": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/02-ConstanciaPedido"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "d7795211-7fc7-46b4-a079-76559a9bd16d"
+              }
+            },
+            "Compose_URL_Constancia_Pedido": {
+              "type": "Compose",
+              "inputs": "@concat(\n  outputs('Compose_Sitio_SP'), '/', \n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\n  '/Forms/AllItems.aspx',\n  '?id=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\n  encodeUriComponent('02-ConstanciaPedido'),\n  '&listurl=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\n)\n",
+              "runAfter": {
+                "Create_new_folder_Constancia_Pedido": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_3": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_constancia_pedido": "@outputs('Compose_URL_Constancia_Pedido')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Constancia_Pedido": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "622ed983-35bb-4e66-8b43-90e76417908a"
+          }
+        },
+        "Scope_Subcarpeta_Proforma": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder_Proforma": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/05-Proforma"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "ff438280-d886-49b3-af6a-b029f37d8a33"
+              }
+            },
+            "Compose_URL_Proforma": {
+              "type": "Compose",
+              "inputs": "@concat(\n  outputs('Compose_Sitio_SP'), '/', \n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\n  '/Forms/AllItems.aspx',\n  '?id=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\n  encodeUriComponent('05-Proforma'),\n  '&listurl=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\n)\n",
+              "runAfter": {
+                "Create_new_folder_Proforma": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_4": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_proforma": "@outputs('Compose_URL_Proforma')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Proforma": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "0ffbedc1-8bfc-47ac-9f2e-6586e2114ade"
+          }
+        },
+        "Scope_Subcarpeta_Factura": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder_Factura": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/06-Factura"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "23f28986-5e24-491c-bb6a-0914dac4be8b"
+              }
+            },
+            "Compose_URL_Factura": {
+              "type": "Compose",
+              "inputs": "@concat(\n  outputs('Compose_Sitio_SP'), '/', \n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\n  '/Forms/AllItems.aspx',\n  '?id=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\n  encodeUriComponent('06-Factura'),\n  '&listurl=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\n)\n",
+              "runAfter": {
+                "Create_new_folder_Factura": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_5": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_factura": "@outputs('Compose_URL_Factura')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose_URL_Factura": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "54512130-5636-4fbb-8fc4-0a4022a3a18c"
+          }
+        },
+        "Scope_Subcarpeta_Informes_Ensayos": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder-InformesEnsayos": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/04-InfEnsayo"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "23f28986-5e24-491c-bb6a-0914dac4be8b"
+              }
+            },
+            "Compose-InformesEnsayos": {
+              "type": "Compose",
+              "inputs": "@concat(\n  outputs('Compose_Sitio_SP'), '/', \n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\n  '/Forms/AllItems.aspx',\n  '?id=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\n  encodeUriComponent('04-InfEnsayo'),\n  '&listurl=%2Fsites%2F',\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\n)\n",
+              "runAfter": {
+                "Create_new_folder-InformesEnsayos": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_6": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_infensayo": "@outputs('Compose-InformesEnsayos')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose-InformesEnsayos": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Scope_Subcarpeta_Recepcion_Laboratorios": {
+          "type": "Scope",
+          "actions": {
+            "Create_new_folder-RecepcionLaboratorios": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "@outputs('Compose_Nombre_Proyecto')",
+                  "parameters/path": "@{outputs('Compose_Nombre_Carpeta_Campaña')}/03-RecepLab"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "metadata": {
+                "operationMetadataId": "23f28986-5e24-491c-bb6a-0914dac4be8b"
+              }
+            },
+            "Compose-RecepcionLaboratorios": {
+              "type": "Compose",
+              "inputs": "@concat(\r\n  outputs('Compose_Sitio_SP'), '/', \r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')),\r\n  '/Forms/AllItems.aspx',\r\n  '?id=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Carpeta_Campaña')), '%2F',\r\n  encodeUriComponent('03-RecepLab'),\r\n  '&listurl=%2Fsites%2F',\r\n  last(split(outputs('Compose_Sitio_SP'), '/')), '%2F',\r\n  encodeUriComponent(outputs('Compose_Nombre_Proyecto'))\r\n)\r\n",
+              "runAfter": {
+                "Create_new_folder-RecepcionLaboratorios": [
+                  "SUCCEEDED"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Update_a_row_-_Tabla_Campaña-Analiticas_7": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/tema_litogl_tp_txt_receplab": "@outputs('Compose-RecepcionLaboratorios')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Compose-RecepcionLaboratorios": [
+                  "SUCCEEDED"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope_URL_Carpeta_Campaña_en_SP": [
+              "SUCCEEDED"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

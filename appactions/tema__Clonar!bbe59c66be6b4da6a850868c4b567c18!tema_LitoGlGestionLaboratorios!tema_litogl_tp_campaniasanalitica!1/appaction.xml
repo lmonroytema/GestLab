@@ -1,0 +1,36 @@
+<appaction uniquename="tema__Clonar!bbe59c66be6b4da6a850868c4b567c18!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!1">
+  <appmoduleid>
+    <uniquename>tema_LitoGlGestionLaboratorios</uniquename>
+  </appmoduleid>
+  <buttonlabeltext default="🔁 Clonar">
+    <label description="🔁 Clonar" languagecode="3082" />
+  </buttonlabeltext>
+  <context>1</context>
+  <contextentity>
+    <logicalname>tema_litogl_tp_campaniasanalitica</logicalname>
+  </contextentity>
+  <contextvalue>tema_litogl_tp_campaniasanalitica</contextvalue>
+  <hidden>0</hidden>
+  <iscustomizable>1</iscustomizable>
+  <isdisabled>0</isdisabled>
+  <isgrouptitlehidden>0</isgrouptitlehidden>
+  <location>1</location>
+  <name>Clonar!bbe59c66be6b4da6a850868c4b567c18</name>
+  <onclickeventjavascriptfunctionname>EjecutarFlujoDesdeBoton</onclickeventjavascriptfunctionname>
+  <onclickeventjavascriptparameters>[]</onclickeventjavascriptparameters>
+  <onclickeventjavascriptwebresourceid>
+    <webresourceid>50d5ebb7-9b9c-4ae0-b215-b4c4fb1d90d1</webresourceid>
+  </onclickeventjavascriptwebresourceid>
+  <onclickeventtype>2</onclickeventtype>
+  <origin>0</origin>
+  <sequence>1000100010.0000000000</sequence>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <type>0</type>
+  <visibilityformulacomponentlibraryid>
+    <name>tema_litoglgestionlaboratoriosdefaultcommandlibrary_c3423</name>
+  </visibilityformulacomponentlibraryid>
+  <visibilityformulacomponentname>a62508522e3548089c1ac1059c4d9448</visibilityformulacomponentname>
+  <visibilityformulafunctionname>Visible</visibilityformulafunctionname>
+  <visibilitytype>1</visibilitytype>
+</appaction>

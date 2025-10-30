@@ -1,0 +1,177 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      },
+      "shared_sharepointonline": {
+        "api": {
+          "name": "shared_sharepointonline"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedsharepointonline_7c171"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "Sitio Sharepoint (tema_SitioSharepoint)": {
+          "defaultValue": "https://grupotemalitoclean.sharepoint.com/sites/PE-TL-GGPI-PRUEBASDESARROLLOS",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_SitioSharepoint",
+            "description": "URL Web del entorno de desarrollo. Por default se coloca cualquier dirección web. El de produccion es:       y el de desarrollo es: "
+          }
+        }
+      },
+      "triggers": {
+        "Cuando_se_agrega,_modifica_o_elimina_una_fila": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "tema_litogl_tc_laboratorio",
+              "subscriptionRequest/scope": 4,
+              "subscriptionRequest/filterexpression": "statecode eq 0 and tema_litogl_tc_laboratorioid ne null"
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "ad3826f3-3177-40b6-9153-503e50e9c789"
+          }
+        }
+      },
+      "actions": {
+        "Scope-CarpetaLaboratorioEnSP": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-NombreCarpetaLaboratorio": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tc_cp_idlaboratorio']",
+              "metadata": {
+                "operationMetadataId": "f328b83f-6919-4129-b52e-a167d46362f5"
+              }
+            },
+            "Create_new_folder_Carpeta_Campaña_en_SP": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "dataset": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+                  "table": "1d2aa096-6617-46db-b045-3c296ea6c83a",
+                  "parameters/path": "@outputs('Redactar-NombreCarpetaLaboratorio')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "operationId": "CreateNewFolder",
+                  "connectionName": "shared_sharepointonline"
+                }
+              },
+              "runAfter": {
+                "Redactar-NombreCarpetaLaboratorio": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "68a142d0-6065-45e9-87c5-0050020fedae"
+              }
+            }
+          },
+          "runAfter": {
+            "Redactar-URLBibliotecaLaboratorios": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "34071ef3-8e64-4ebc-a83e-0fcc5969944a"
+          }
+        },
+        "Scope-URLCarpetaLaboratorioEnSP": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-URLCarpetaLaboratorioEnSP": {
+              "type": "Compose",
+              "inputs": "@concat(\r\n  parameters('Sitio Sharepoint (tema_SitioSharepoint)'), \r\n  '/Laboratorios?',\r\n  'id=%2Fsites%2F',\r\n  last(split(parameters('Sitio Sharepoint (tema_SitioSharepoint)'), '/')), \r\n  '%2FLaboratorios%2F',\r\n  encodeUriComponent(outputs('Redactar-NombreCarpetaLaboratorio')),\r\n  '&listurl=%2Fsites%2F',\r\n  last(split(parameters('Sitio Sharepoint (tema_SitioSharepoint)'), '/')), \r\n  '%2FLaboratorios',\r\n  '&newTargetListUrl=',\r\n  concat(\r\n    parameters('Sitio Sharepoint (tema_SitioSharepoint)'), \r\n    '/Laboratorios'\r\n  )\r\n)",
+              "runAfter": {
+                "Compose_Sitio_SP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "04b6834e-a58f-460f-8ddf-cfaa1d13d088"
+              }
+            },
+            "Compose_Sitio_SP": {
+              "type": "Compose",
+              "inputs": "@parameters('Sitio Sharepoint (tema_SitioSharepoint)')",
+              "metadata": {
+                "operationMetadataId": "d4b49990-5f4c-40aa-9376-f645f84c0015"
+              }
+            },
+            "Update_a_row_-TablaLaboratorios": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tc_laboratorios",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tc_laboratorioid']",
+                  "item/tema_litogl_tc_txt_url_laboratorio": "@outputs('Redactar-URLCarpetaLaboratorioEnSP')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Redactar-URLCarpetaLaboratorioEnSP": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "c0bda4d3-4e73-4027-ade2-e46e4ac957ea"
+              }
+            }
+          },
+          "runAfter": {
+            "Scope-CarpetaLaboratorioEnSP": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "94cded11-1db1-45d7-b6fa-7e3aac62327a"
+          }
+        },
+        "Redactar-URLBibliotecaLaboratorios": {
+          "type": "Compose",
+          "inputs": "https://grupotemalitoclean.sharepoint.com/sites/PE-TL-GGPI-PRUEBASDESARROLLOS/Laboratorios/Forms/AllItems.aspx?npsAction=createList",
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "fd0dfd23-57e4-4c47-af0d-305ee408b084"
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

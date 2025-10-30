@@ -1,0 +1,169 @@
+/********************************************************************************************
+ * Notificar creación de biblioteca en SharePoint con control de re-guardado
+ * Autor: Bladimir Muñoz Montes
+ * Versión: 3.5 – Corrige refresco automático durante edición del usuario
+ ********************************************************************************************/
+
+if (typeof ProyectoForm === "undefined") ProyectoForm = { __namespace: true };
+
+ProyectoForm.Events = {
+
+    // Al guardar: solo inicia creación si la URL está vacía
+    OnSave: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_proyecto").getValue();
+
+        // ✅ Copiar valor de tema_codigo_proyecto a tema_litogl_tc_cp_idproyecto
+        var src = formContext.getAttribute("tema_codigo_proyecto");
+        var dst = formContext.getAttribute("tema_litogl_tc_cp_idproyecto");
+        if (src && dst) {
+            var value = src.getValue();
+            if (value) {
+                dst.setValue(value);
+            }
+        }
+
+        if (!urlValue) {
+            // No hay URL → biblioteca aún no creada
+            formContext.ui.setFormNotification(
+                "⚠️⏳ Creando biblioteca en SharePoint. La URL aparecerá automáticamente cuando esté lista…",
+                "INFO",
+                "libCreating"
+            );
+            ProyectoForm.Functions.startPolling(formContext);
+        } else {
+            // Ya hay URL → solo mensaje de guardado normal
+            formContext.ui.setFormNotification(
+                "✅ Cambios guardados con éxito",
+                "INFO",
+                "saveOnly"
+            );
+            setTimeout(function () {
+                formContext.ui.clearFormNotification("saveOnly");
+            }, 5000);
+        }
+    },
+
+    // Al cargar: si NO hay URL, prepara el refresco (por si la creación aún está en curso)
+    OnLoad: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_proyecto").getValue();
+
+        // Detiene cualquier intervalo previo por seguridad
+        if (ProyectoForm._intervalId) {
+            clearInterval(ProyectoForm._intervalId);
+            ProyectoForm._intervalId = null;
+        }
+
+        // Inicializar variables de control
+        ProyectoForm._isUserEditing = false;
+        ProyectoForm._lastCheckTime = new Date().getTime();
+
+        if (!urlValue) {
+            ProyectoForm.Functions.startPolling(formContext);
+        }
+
+        // Agregar listeners para detectar cuando el usuario está editando
+        ProyectoForm.Functions.setupEditingDetection(formContext);
+    }
+};
+
+ProyectoForm.Functions = {
+    /**
+     * Configura la detección de edición del usuario para pausar el polling
+     */
+    setupEditingDetection: function (formContext) {
+        var controls = formContext.ui.controls.get();
+        controls.forEach(function (control) {
+            if (control.getControlType && (control.getControlType() === "standard" || control.getControlType() === "lookup")) {
+                if (control.addOnKeyPress) {
+                    control.addOnKeyPress(function () {
+                        ProyectoForm._isUserEditing = true;
+                        ProyectoForm._lastEditTime = new Date().getTime();
+                    });
+                }
+
+                if (control.getAttribute && control.getAttribute().addOnChange) {
+                    control.getAttribute().addOnChange(function () {
+                        setTimeout(function () {
+                            ProyectoForm._isUserEditing = false;
+                        }, 2000);
+                    });
+                }
+            }
+        });
+
+        formContext.data.entity.addOnSave(function () {
+            ProyectoForm._isUserEditing = false;
+        });
+    },
+
+    /**
+     * Verifica si es seguro hacer el refresco (usuario no está editando y no hay cambios sin guardar)
+     */
+    isSafeToRefresh: function (formContext) {
+        if (ProyectoForm._isUserEditing) {
+            return false;
+        }
+        if (formContext.data.entity.getIsDirty()) {
+            return false;
+        }
+        if (ProyectoForm._lastEditTime && (new Date().getTime() - ProyectoForm._lastEditTime) < 5000) {
+            return false;
+        }
+        return true;
+    },
+
+    /**
+     * Revisa cada 10 s si ya existe la URL en el campo Dataverse y actualiza el mensaje.
+     * Solo refresca si es seguro hacerlo (usuario no está editando).
+     * Detiene el intervalo en cuanto detecta la URL.
+     */
+    startPolling: function (formContext) {
+        if (ProyectoForm._intervalId) clearInterval(ProyectoForm._intervalId);
+
+        ProyectoForm._intervalId = setInterval(function () {
+            if (!ProyectoForm.Functions.isSafeToRefresh(formContext)) {
+                console.log("⏸️ Polling pausado - usuario editando o hay cambios sin guardar");
+                return;
+            }
+
+            var currentUrlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_proyecto").getValue();
+            if (currentUrlValue) {
+                ProyectoForm.Functions.stopPollingWithSuccess(formContext);
+                return;
+            }
+
+            formContext.data.refresh(false).then(function () {
+                var urlValue = formContext.getAttribute("tema_litogl_tc_txt_carpeta_proyecto").getValue();
+                if (urlValue) {
+                    ProyectoForm.Functions.stopPollingWithSuccess(formContext);
+                }
+            }, function (error) {
+                console.error("❌ Error al refrescar el formulario:", error);
+            });
+        }, 10000);
+    },
+
+    /**
+     * Detiene el polling y muestra mensaje de éxito
+     */
+    stopPollingWithSuccess: function (formContext) {
+        formContext.ui.clearFormNotification("libCreating");
+
+        formContext.ui.setFormNotification(
+            "✅📂 Biblioteca creada en SharePoint",
+            "INFO",
+            "libReady"
+        );
+
+        setTimeout(function () {
+            formContext.ui.clearFormNotification("libReady");
+        }, 8000);
+
+        if (ProyectoForm._intervalId) {
+            clearInterval(ProyectoForm._intervalId);
+            ProyectoForm._intervalId = null;
+        }
+    }
+};

@@ -1,0 +1,103 @@
+/********************************************************************************************
+ * Web Resource: Prefijar proyecto en Campaña Equipo según campaña relacionada
+ * Autor: PowerApps Pro
+ ********************************************************************************************/
+
+if (typeof CampanaEquipoForm === "undefined") CampanaEquipoForm = { __namespace: true };
+
+CampanaEquipoForm.Events = {
+    OnLoad: function (executionContext) {
+        var formContext = (executionContext && executionContext.getFormContext)
+            ? executionContext.getFormContext()
+            : (typeof Xrm !== "undefined" && Xrm.Page ? Xrm.Page : null);
+        if (!formContext) {
+            console.warn("FormOnLoad: no se pudo obtener formContext (Campaña Equipo)");
+            return;
+        }
+        CampanaEquipoForm.Functions.prefijarProyectoDesdeCampania(formContext);
+
+        // Reaccionar ante cambios del vínculo a campaña (lookup correcto en esta entidad)
+        var attrs = ["crc1d_litogl_tr_bu_idcampana"]; // lookup a campaña en Campaña Equipo
+        attrs.forEach(function (name) {
+            var a = formContext.getAttribute(name);
+            if (a && a.addOnChange) {
+                a.addOnChange(function () {
+                    CampanaEquipoForm.Functions.prefijarProyectoDesdeCampania(formContext);
+                });
+            }
+        });
+    }
+};
+
+// Función global esperada por el formulario: FormOnLoad
+function FormOnLoad(executionContext) {
+    try {
+        CampanaEquipoForm.Events.OnLoad(executionContext);
+    } catch (e) {
+        console.error("Error en FormOnLoad (Campaña Equipo):", e);
+    }
+}
+
+CampanaEquipoForm.Functions = {
+    prefijarProyectoDesdeCampania: function (formContext) {
+        try {
+            var projAttr = formContext.getAttribute("tema_litogl_tr_bu_id_proyecto");
+            var projTextAttr = formContext.getAttribute("tema_litogl_tr_cp_id_proyecto_equipo");
+            if (projAttr && projAttr.getValue()) return; // respetar si ya está
+
+            var campId = null;
+            var campLookup = formContext.getAttribute("crc1d_litogl_tr_bu_idcampana");
+            if (campLookup && campLookup.getValue() && campLookup.getValue().length) {
+                campId = campLookup.getValue()[0].id.replace(/[{}]/g, "");
+            }
+
+            if (!campId) {
+                formContext.ui.setFormNotification("Selecciona una campaña para cargar el proyecto", "INFO", "notifNoCampanaEquipo");
+                return;
+            } else {
+                formContext.ui.clearFormNotification("notifNoCampanaEquipo");
+            }
+
+            // 1) Intentar prefijar desde sessionStorage si existe (capturado en formulario de Campañas)
+            try {
+                var claveBase = "campania:" + campId + ":";
+                var pid = sessionStorage.getItem(claveBase + "proyectoId");
+                var pname = sessionStorage.getItem(claveBase + "proyectoName");
+                var pentity = sessionStorage.getItem(claveBase + "proyectoEntity") || "tema_litogl_tc_proyectos";
+                if (pid && pname) {
+                    var lookupCached = [{ id: pid, name: pname, entityType: pentity }];
+                    if (projAttr) projAttr.setValue(lookupCached);
+                    if (projTextAttr) projTextAttr.setValue(pname);
+                    return; // listo desde caché
+                }
+            } catch (e) { /* continuar con API si falla */ }
+
+            // 2) Fallback: recuperar por API si no hay caché
+            Xrm.WebApi.retrieveRecord("tema_litogl_tp_campaniasanalitica", campId, "?$expand=tema_litogl_tp_bu_idproyecto($select=tema_litogl_tc_proyectosid,name)").then(function (res) {
+                var proyecto = res["tema_litogl_tp_bu_idproyecto"];
+                if (!proyecto || !proyecto["tema_litogl_tc_proyectosid"]) {
+                    formContext.ui.setFormNotification("La campaña seleccionada no tiene proyecto asociado", "INFO", "notifNoProyectoCampEquipo");
+                    return;
+                }
+                formContext.ui.clearFormNotification("notifNoProyectoCampEquipo");
+                var lookup = [{
+                    id: proyecto["tema_litogl_tc_proyectosid"],
+                    name: proyecto.name,
+                    entityType: "tema_litogl_tc_proyectos"
+                }];
+                if (projAttr) projAttr.setValue(lookup);
+                if (projTextAttr) projTextAttr.setValue(proyecto.name);
+
+                // Guardar en caché para próximos formularios
+                try {
+                    var claveBase = "campania:" + campId + ":";
+                    sessionStorage.setItem(claveBase + "proyectoId", proyecto["tema_litogl_tc_proyectosid"]);
+                    sessionStorage.setItem(claveBase + "proyectoName", proyecto.name || "");
+                    sessionStorage.setItem(claveBase + "proyectoEntity", "tema_litogl_tc_proyectos");
+                } catch (e) {}
+            });
+        } catch (e) {
+            console.warn("No fue posible prefijar proyecto en Campaña Equipo:", e);
+        }
+    }
+};

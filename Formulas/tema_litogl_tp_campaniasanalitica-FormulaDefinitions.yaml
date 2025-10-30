@@ -1,0 +1,45 @@
+tema_litogl_tp_fx_nombreetapa: |-
+    =If(
+        tema_litogl_tp_int_etapaactualid = 1, "Planificación",
+        tema_litogl_tp_int_etapaactualid = 2, "Ejecución",
+        tema_litogl_tp_int_etapaactualid = 3, "Solicitud",
+        tema_litogl_tp_int_etapaactualid = 4, "Provisión",
+        tema_litogl_tp_int_etapaactualid = 5, "Recepción de Muestra",
+        tema_litogl_tp_int_etapaactualid = 6, "Recepción de Resultados",
+        tema_litogl_tp_int_etapaactualid = 7, "Validación de Resultados",
+        tema_litogl_tp_int_etapaactualid = 8, "Recepción de Proforma",
+        tema_litogl_tp_int_etapaactualid = 9, "Validación de Proforma",
+        tema_litogl_tp_int_etapaactualid = 10, "Validación de Factura",
+        tema_litogl_tp_int_etapaactualid = 11, "Cierre",
+        "Ninguna"
+    )
+tema_litogl_tp_fx_respcontab: |-
+    =If(
+        tema_litogl_tp_int_etapaactualid = 4 ||
+        tema_litogl_tp_int_etapaactualid = 8 ||
+        tema_litogl_tp_int_etapaactualid = 9 ||
+        tema_litogl_tp_int_etapaactualid = 10 ||
+        tema_litogl_tp_int_etapaactualid = 11,
+        "Si",
+        "No"
+    )
+tema_litogl_tp_fx_respedicion: |-
+    =If(
+        tema_litogl_tp_int_etapaactualid = 3 ||
+        tema_litogl_tp_int_etapaactualid = 8 ||
+        tema_litogl_tp_int_etapaactualid = 10,
+        "Si",
+        "No"
+    )
+tema_litogl_tp_fx_resptecnico: |-
+    =If(
+        tema_litogl_tp_int_etapaactualid = 1 ||
+        tema_litogl_tp_int_etapaactualid = 2 ||
+        tema_litogl_tp_int_etapaactualid = 3 ||
+        tema_litogl_tp_int_etapaactualid = 5 ||
+        tema_litogl_tp_int_etapaactualid = 6 ||
+        tema_litogl_tp_int_etapaactualid = 7 ||
+        tema_litogl_tp_int_etapaactualid = 9,
+        "Si",
+        "No"
+    )

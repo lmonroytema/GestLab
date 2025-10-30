@@ -1,0 +1,248 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        },
+        "connection": {
+          "connectionReferenceLogicalName": "tema_sharedcommondataserviceforapps_f455c"
+        },
+        "runtimeSource": "embedded"
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        },
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "Dominio Entorno (tema_DominioEntorno)": {
+          "defaultValue": "https://orgfd8997b1.crm4.dynamics.com/",
+          "type": "String",
+          "metadata": {
+            "schemaName": "tema_DominioEntorno",
+            "description": "El de produccion es:     y el de desarrollo es: "
+          }
+        }
+      },
+      "triggers": {
+        "When_a_row_is_added,_modified_or_deleted": {
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "parameters": {
+              "subscriptionRequest/message": 1,
+              "subscriptionRequest/entityname": "tema_litogl_tp_campaniasanalitica",
+              "subscriptionRequest/scope": 4
+            },
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+              "operationId": "SubscribeWebhookTrigger",
+              "connectionName": "shared_commondataserviceforapps"
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "c6af166f-8d66-4f22-9220-3137841be6cb"
+          }
+        }
+      },
+      "actions": {
+        "Compose-DominioEntorno": {
+          "type": "Compose",
+          "inputs": "@parameters('Dominio Entorno (tema_DominioEntorno)')",
+          "runAfter": {}
+        },
+        "Ambito-CrearEquipoTecnicoCampania": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-NombreCampania": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tp_cp_idcampania']"
+            },
+            "Redactar-IDUnidadNegocios": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/_owningbusinessunit_value']",
+              "runAfter": {
+                "Redactar-NombreCampania": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-GuidCampania": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+              "runAfter": {
+                "Redactar-GuidUnidadNegocios": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-GuidUnidadNegocios": {
+              "type": "Compose",
+              "inputs": "@concat('/businessunits(', outputs('Redactar-IDUnidadNegocios'), ')')",
+              "runAfter": {
+                "Redactar-IDUnidadNegocios": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar_1": {
+              "type": "Compose",
+              "inputs": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+              "runAfter": {
+                "Redactar-GuidCampania": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "AgregarUnaFilaNueva-TablaEquipo": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "item/name": "@concat(outputs('Redactar-NombreCampania'), ' - Lito-GL | Lectura')",
+                  "item/teamtype": 0,
+                  "item/membershiptype": 0,
+                  "item/businessunitid@odata.bind": "@concat('/businessunits(', triggerOutputs()?['body/_owningbusinessunit_value'], ')')",
+                  "item/tema_LitoGL_te_bu_Campania@odata.bind": "@concat('/tema_litogl_tp_campaniasanaliticas(', triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid'], ')')",
+                  "item/tema_litogl_te_op_rolcampania": 1
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "CreateRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Redactar_1": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Compose-DominioEntorno": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Ambito-AsignarRolTecnicoAEquipos": {
+          "type": "Scope",
+          "actions": {
+            "EnumerarFilas-TablaRolesDeSeguridad": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "roles",
+                  "$filter": "name eq 'Lito-GL | Lectura'"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "ListRecords",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              }
+            },
+            "RelacionarFilasEquipoARolTecnico": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "recordId": "@outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']",
+                  "associationEntityRelationship": "teamroles_association",
+                  "item/@odata.id": "@concat(outputs('Compose-DominioEntorno'),'api/data/v9.1/roles(',\r\n  outputs('EnumerarFilas-TablaRolesDeSeguridad')?['body/value'][0]['roleid'],\r\n  ')'\r\n)"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "AssociateEntities",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "EnumerarFilas-TablaRolesDeSeguridad": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "ObtenerUnaFilaPorId-TablaEquipos": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "teams",
+                  "recordId": "@outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']",
+                  "$expand": "teamroles_association\n"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "GetItem",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "RelacionarFilasEquipoARolTecnico": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Redactar-NombreRol": {
+              "type": "Compose",
+              "inputs": "@outputs('ObtenerUnaFilaPorId-TablaEquipos')?['body']['teamroles_association']",
+              "runAfter": {
+                "ObtenerUnaFilaPorId-TablaEquipos": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Ambito-CrearEquipoTecnicoCampania": [
+              "Succeeded"
+            ]
+          }
+        },
+        "Ambito-EquipoResponsableCampania": {
+          "type": "Scope",
+          "actions": {
+            "Redactar-GUIDEquipoCreado": {
+              "type": "Compose",
+              "inputs": "@{outputs('AgregarUnaFilaNueva-TablaEquipo')?['body/teamid']}\n"
+            },
+            "ActualizarFila-PropietarioCampania": {
+              "type": "OpenApiConnection",
+              "inputs": {
+                "parameters": {
+                  "entityName": "tema_litogl_tp_campaniasanaliticas",
+                  "recordId": "@triggerOutputs()?['body/tema_litogl_tp_campaniasanaliticaid']",
+                  "item/ownerid@odata.bind": "@concat('/teams(', outputs('Redactar-GUIDEquipoCreado'), ')')"
+                },
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps",
+                  "operationId": "UpdateOnlyRecord",
+                  "connectionName": "shared_commondataserviceforapps"
+                }
+              },
+              "runAfter": {
+                "Redactar-GUIDEquipoCreado": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "runAfter": {
+            "Ambito-AsignarRolTecnicoAEquipos": [
+              "Succeeded"
+            ]
+          }
+        }
+      }
+    },
+    "templateName": null
+  },
+  "schemaVersion": "1.0.0.0"
+}

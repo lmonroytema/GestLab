@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="tema_AppID">
+  <defaultvalue>793ed927-6d8b-f011-b4cc-7c1e525fa32f</defaultvalue>
+  <description default="Buscar en &quot;detalles&quot; del App. El id de producción es:">
+    <label description="Buscar en &quot;detalles&quot; del App. El id de producción es:" languagecode="3082" />
+  </description>
+  <displayname default="AppID">
+    <label description="AppID" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

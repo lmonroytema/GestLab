@@ -1,0 +1,31 @@
+<appaction uniquename="tema__DesbloquearEtapas!9f0833dbcc0e4227ae3dd6e02cabc733!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0">
+  <appmoduleid>
+    <uniquename>tema_LitoGlGestionLaboratorios</uniquename>
+  </appmoduleid>
+  <buttonlabeltext default="🔓 Desbloquear Etapas">
+    <label description="🔓 Desbloquear Etapas" languagecode="3082" />
+  </buttonlabeltext>
+  <context>1</context>
+  <contextentity>
+    <logicalname>tema_litogl_tp_campaniasanalitica</logicalname>
+  </contextentity>
+  <contextvalue>tema_litogl_tp_campaniasanalitica</contextvalue>
+  <hidden>0</hidden>
+  <iscustomizable>1</iscustomizable>
+  <isdisabled>0</isdisabled>
+  <isgrouptitlehidden>0</isgrouptitlehidden>
+  <location>0</location>
+  <name>DesbloquearEtapas!9f0833dbcc0e4227ae3dd6e02cabc733</name>
+  <onclickeventjavascriptfunctionname>DesbloquearEtapaActual</onclickeventjavascriptfunctionname>
+  <onclickeventjavascriptparameters>[{"type":5}]</onclickeventjavascriptparameters>
+  <onclickeventjavascriptwebresourceid>
+    <webresourceid>43214ae8-d694-f011-b41c-7ced8d15a5a6</webresourceid>
+  </onclickeventjavascriptwebresourceid>
+  <onclickeventtype>2</onclickeventtype>
+  <origin>0</origin>
+  <sequence>100110008.5000000000</sequence>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <type>0</type>
+  <visibilitytype>0</visibilitytype>
+</appaction>

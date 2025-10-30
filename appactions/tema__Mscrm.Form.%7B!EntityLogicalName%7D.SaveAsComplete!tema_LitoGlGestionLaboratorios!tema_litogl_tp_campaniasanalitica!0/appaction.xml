@@ -1,0 +1,41 @@
+<appaction uniquename="tema__Mscrm.Form.{!EntityLogicalName}.SaveAsComplete!tema_LitoGlGestionLaboratorios!tema_litogl_tp_campaniasanalitica!0">
+  <appmoduleid>
+    <uniquename>tema_LitoGlGestionLaboratorios</uniquename>
+  </appmoduleid>
+  <buttonaccessibilitytext default="Marcar como completado">
+    <label description="Marcar como completado" languagecode="3082" />
+  </buttonaccessibilitytext>
+  <buttonlabeltext default="Marcar como completado">
+    <label description="Marcar como completado" languagecode="3082" />
+  </buttonlabeltext>
+  <buttontooltipdescription default="Guarde el {EntityLogicalNameMarker} y cambie su estado a Completado.">
+    <label description="Guarde el {EntityLogicalNameMarker} y cambie su estado a Completado." languagecode="3082" />
+  </buttontooltipdescription>
+  <buttontooltiptitle default="Marcar como completado">
+    <label description="Marcar como completado" languagecode="3082" />
+  </buttontooltiptitle>
+  <context>1</context>
+  <contextentity>
+    <logicalname>tema_litogl_tp_campaniasanalitica</logicalname>
+  </contextentity>
+  <contextvalue>tema_litogl_tp_campaniasanalitica</contextvalue>
+  <fonticon>$clientsvg:Accept</fonticon>
+  <hidden>1</hidden>
+  <iscustomizable>1</iscustomizable>
+  <isdisabled>0</isdisabled>
+  <isgrouptitlehidden>0</isgrouptitlehidden>
+  <location>0</location>
+  <name>Mscrm.Form.{!EntityLogicalName}.SaveAsComplete</name>
+  <onclickeventjavascriptfunctionname>XrmCore.Commands.Save.saveAsCompleted</onclickeventjavascriptfunctionname>
+  <onclickeventjavascriptparameters>[]</onclickeventjavascriptparameters>
+  <onclickeventjavascriptwebresourceid>
+    <webresourceid>adea1aea-b2aa-e611-80d6-00155d88c343</webresourceid>
+  </onclickeventjavascriptwebresourceid>
+  <onclickeventtype>2</onclickeventtype>
+  <origin>2</origin>
+  <sequence>100100020.0000000000</sequence>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <type>0</type>
+  <visibilitytype>2</visibilitytype>
+</appaction>

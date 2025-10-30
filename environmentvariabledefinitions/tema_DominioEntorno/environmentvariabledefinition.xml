@@ -1,0 +1,14 @@
+<environmentvariabledefinition schemaname="tema_DominioEntorno">
+  <defaultvalue>https://orgfd8997b1.crm4.dynamics.com/</defaultvalue>
+  <description default="El de produccion es:     y el de desarrollo es: ">
+    <label description="El de produccion es:     y el de desarrollo es: " languagecode="3082" />
+  </description>
+  <displayname default="Dominio Entorno">
+    <label description="Dominio Entorno" languagecode="3082" />
+  </displayname>
+  <introducedversion>1.0.0.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <secretstore>0</secretstore>
+  <type>100000000</type>
+</environmentvariabledefinition>

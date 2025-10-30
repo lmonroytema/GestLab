@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Destinatarios de Incidencia</title>
+  <style>
+  body { font-family: Segoe UI, Arial, sans-serif; margin: 12px; }
+  #app { max-width: 960px; }
+  .context-info { margin: 8px 0 12px; }
+  .context-info > div { margin: 4px 0; }
+  .grid-actions { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+  .grid-actions button { padding: 6px 12px; }
+  .status { margin-left: 8px; color: #555; }
+  .table-empty { color: #777; font-style: italic; }
+  .table-error { color: #b00020; }
+
+  .grid { width: 100%; border-collapse: collapse; }
+  .grid thead th { text-align: left; background: #f3f3f3; border-bottom: 1px solid #ddd; padding: 8px; }
+  .grid tbody td { border-bottom: 1px solid #eee; padding: 6px 8px; }
+  .grid tbody tr:hover { background: #fafafa; }
+
+  .checkbox { width: 22px; height: 22px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h3>Seleccionar destinatarios para notificación de incidencia</h3>
+
+    <div class="context-info">
+      <div><strong>Campaña:</strong> <span id="campaniaNombre">(cargando)</span></div>
+      <div><strong>Etapa:</strong> <span id="etapaNombre">(cargando)</span></div>
+      <div><strong>Incidencia:</strong> <span id="incNombreCorto">(cargando)</span></div>
+    </div>
+
+    <div class="grid-actions">
+      <button id="btnRefrescar">Refrescar equipo</button>
+      <button id="btnEnviar">Enviar correo</button>
+      <span id="statusMsg" class="status"></span>
+    </div>
+
+    <table class="grid" id="recipientsGrid">
+      <thead>
+        <tr>
+          <th>Enviar</th>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Equipo/Rol</th>
+        </tr>
+      </thead>
+      <tbody id="recipientsBody">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+  (function(){
+    'use strict';
+    var RecipientsGrid = {
+      tokensRol: [
+        "Director del Proyecto", "Director", "Tecnico", "Técnico",
+        "Administración Contabilidad", "Contabilidad",
+        "Administración Edición", "Edición"
+      ],
+      etapaMap: {
+        1: "Planificación",
+        2: "Ejecución",
+        3: "Solicitud",
+        4: "Provisión",
+        5: "Recepción Muestra",
+        6: "Recepción Resultados",
+        7: "Validación Resultados",
+        8: "Recepción Proforma",
+        9: "Validación Proforma",
+        10: "Recepción Factura",
+        11: "Cierre"
+      },
+      state: {
+        campId: null,
+        campName: "",
+        etapaValor: null,
+        etapaNombre: "",
+        incidenciaNombreCorto: "",
+        incidenciaDetalle: "",
+        currentUserId: null,
+        recipients: []
+      },
+
+      init: function(){
+        var btnRef = document.getElementById('btnRefrescar');
+        var btnSend = document.getElementById('btnEnviar');
+        if(btnRef) btnRef.addEventListener('click', RecipientsGrid.refresh);
+        if(btnSend) btnSend.addEventListener('click', RecipientsGrid.sendEmail);
+
+        RecipientsGrid.bootstrapContext().then(function(){
+          RecipientsGrid.refresh();
+        });
+      },
+
+      setStatus: function(msg){
+        var el = document.getElementById('statusMsg');
+        if(el) el.textContent = msg || '';
+      },
+
+      bootstrapContext: function(){
+        return new Promise(function(resolve){
+          try {
+            // Obtener contexto del formulario padre si existe
+            var formContext = null;
+            if (window.parent && window.parent.Xrm) {
+              formContext = window.parent.Xrm.Page || (window.parent.Xrm.getFormContext && window.parent.Xrm.getFormContext());
+            } else if (window.Xrm) {
+              formContext = Xrm.Page || (Xrm.getFormContext && Xrm.getFormContext());
+            }
+
+            var s = RecipientsGrid.state;
+            s.currentUserId = RecipientsGrid.stripGuid((window.parent && window.parent.Xrm && window.parent.Xrm.Utility && window.parent.Xrm.Utility.getGlobalContext) ? window.parent.Xrm.Utility.getGlobalContext().userSettings.userId : (Xrm.Utility.getGlobalContext ? Xrm.Utility.getGlobalContext().userSettings.userId : ''));
+
+            // Campaña: intento lookup, hidden, o sessionStorage
+            s.campId = RecipientsGrid.obtenerCampaniaId(formContext);
+
+            // Etapa desde atributo del formulario
+            var etapaVal = RecipientsGrid.leerAttr(formContext, 'tema_litogl_tp_op_etapa_campana');
+            s.etapaValor = etapaVal || null;
+            s.etapaNombre = etapaVal ? (RecipientsGrid.etapaMap[etapaVal] || ("Etapa " + etapaVal)) : '';
+
+            // Incidencia: nombre corto + detalle
+            s.incidenciaNombreCorto = RecipientsGrid.leerAttr(formContext, 'tema_litogl_tr_txt_nombre_corto_incidencia') || '';
+            s.incidenciaDetalle = RecipientsGrid.leerAttr(formContext, 'tema_litogl_tr_txt_detalle_incidencia') || '';
+
+            // Mostrar en UI
+            var elCamp = document.getElementById('campaniaNombre');
+            var elEtapa = document.getElementById('etapaNombre');
+            var elInc = document.getElementById('incNombreCorto');
+            if (elEtapa) elEtapa.textContent = s.etapaNombre || '(sin etapa)';
+            if (elInc) elInc.textContent = s.incidenciaNombreCorto || '(sin nombre)';
+
+            // Cargar nombre de campaña (si tenemos id)
+            if (s.campId && RecipientsGrid.hasWebApi()) {
+              // Intentar primero leer el valor primario directamente del formulario para evitar llamadas OData
+              var formPrimaryName = null;
+              try {
+                formPrimaryName = (formContext && formContext.data && formContext.data.entity && formContext.data.entity.getPrimaryAttributeValue)
+                  ? formContext.data.entity.getPrimaryAttributeValue() : null;
+              } catch(e){}
+
+              // Función interna para auto-rellenar campaña y etapa en el formulario de incidencias
+              function tryAutofillCampos(formContext, s){
+                return new Promise(function(done){
+                  try {
+                    var campAttr = formContext && formContext.getAttribute ? (formContext.getAttribute('tema_litogl_tr_cp_id_campana_incidencia') || formContext.getAttribute('tema_litogl_tp_bu_idcampania') || formContext.getAttribute('tema_litogl_tp_bu_campania')) : null;
+                    var etapaAttr = formContext && formContext.getAttribute ? formContext.getAttribute('tema_litogl_tp_op_etapa_campana') : null;
+                    var needsCamp = campAttr && !campAttr.getValue();
+                    var needsEtapa = etapaAttr && (etapaAttr.getValue() === null || typeof etapaAttr.getValue() === 'undefined');
+
+                    var p1 = Promise.resolve();
+                    if (needsCamp && s.campId) {
+                      var getPrimaryAttr;
+                      try {
+                        getPrimaryAttr = window.parent.Xrm.Utility.getEntityMetadata('tema_litogl_tp_campaniasanalitica', ['PrimaryNameAttribute'])
+                          .then(function(meta){ return (meta && meta.PrimaryNameAttribute) || null; })
+                          .catch(function(){ return null; });
+                      } catch(e){ getPrimaryAttr = Promise.resolve(null); }
+                      p1 = getPrimaryAttr.then(function(primaryAttr){
+                        if (primaryAttr) {
+                          return window.parent.Xrm.WebApi.retrieveRecord('tema_litogl_tp_campaniasanalitica', s.campId, '?$select='+primaryAttr).then(function(res){
+                            var name = (res && res[primaryAttr]) || s.campName || 'Campaña';
+                            campAttr.setValue([{ id: '{'+s.campId+'}', name: name, entityType: 'tema_litogl_tp_campaniasanalitica' }]);
+                          }).catch(function(){
+                            campAttr.setValue([{ id: '{'+s.campId+'}', name: (s.campName||'Campaña'), entityType: 'tema_litogl_tp_campaniasanalitica' }]);
+                          });
+                        } else {
+                          campAttr.setValue([{ id: '{'+s.campId+'}', name: (s.campName||'Campaña'), entityType: 'tema_litogl_tp_campaniasanalitica' }]);
+                          return Promise.resolve();
+                        }
+                      });
+                    }
+
+                    var p2 = Promise.resolve();
+                    if (needsEtapa && s.campId) {
+                      p2 = window.parent.Xrm.WebApi.retrieveRecord('tema_litogl_tp_campaniasanalitica', s.campId,
+                        '?$select=tema_planificacion_completada,tema_ejecucion_completada,tema_solicitud_completada,tema_provision_completada,tema_recepcion_muestra_completada,tema_recepcion_resultados_completado,tema_validacion_resultados_completados,tema_recepcion_proforma_completada,tema_validacion_proforma_completada,tema_recepcion_factura_completada'
+                      ).then(function(rec){
+                        var flags = [
+                          rec.tema_planificacion_completada,
+                          rec.tema_ejecucion_completada,
+                          rec.tema_solicitud_completada,
+                          rec.tema_provision_completada,
+                          rec.tema_recepcion_muestra_completada,
+                          rec.tema_recepcion_resultados_completado,
+                          rec.tema_validacion_resultados_completados,
+                          rec.tema_recepcion_proforma_completada,
+                          rec.tema_validacion_proforma_completada,
+                          rec.tema_recepcion_factura_completada
+                        ];
+                        var idx = 1; // por defecto Planificación
+                        for (var i=0;i<flags.length;i++) {
+                          if (flags[i]) idx = i+2; else break;
+                        }
+                        s.etapaValor = idx;
+                        s.etapaNombre = RecipientsGrid.etapaMap[idx] || ('Etapa '+idx);
+                        try {
+                          return window.parent.Xrm.Utility.getEntityMetadata('tema_litoglcampanaincidencias', ['tema_litogl_tp_op_etapa_campana']).then(function(meta){
+                            try {
+                              var attrMeta = meta.Attributes.getByName('tema_litogl_tp_op_etapa_campana');
+                              var options = attrMeta.OptionSet.Options || [];
+                              var desiredValue = null;
+                              for (var j=0;j<options.length;j++){
+                                var lbl = options[j].Label && options[j].Label.UserLocalizedLabel && options[j].Label.UserLocalizedLabel.Label;
+                                if (lbl === s.etapaNombre) { desiredValue = options[j].Value; break; }
+                              }
+                              etapaAttr.setValue(desiredValue !== null ? desiredValue : idx);
+                            } catch(e) {
+                              etapaAttr.setValue(idx);
+                            }
+                            var elEtapa = document.getElementById('etapaNombre');
+                            if (elEtapa) elEtapa.textContent = s.etapaNombre || '';
+                            return Promise.resolve();
+                          }).catch(function(){
+                            etapaAttr.setValue(idx);
+                            var elEtapa = document.getElementById('etapaNombre');
+                            if (elEtapa) elEtapa.textContent = s.etapaNombre || '';
+                            return Promise.resolve();
+                          });
+                        } catch(e) {
+                          etapaAttr.setValue(idx);
+                          var elEtapa = document.getElementById('etapaNombre');
+                          if (elEtapa) elEtapa.textContent = s.etapaNombre || '';
+                          return Promise.resolve();
+                        }
+                      }).catch(function(){ return Promise.resolve(); });
+                    }
+
+                    Promise.all([p1, p2]).then(function(){ done(); });
+                  } catch(e) { done(); }
+                });
+              }
+
+              var metaPromise;
+              try {
+                metaPromise = window.parent.Xrm.Utility.getEntityMetadata('tema_litogl_tp_campaniasanalitica', ['PrimaryNameAttribute'])
+                  .then(function(meta){ return (meta && meta.PrimaryNameAttribute) || null; })
+                  .catch(function(){ return null; });
+              } catch (e) {
+                metaPromise = Promise.resolve(null);
+              }
+              metaPromise.then(function(primaryAttr){
+                if (formPrimaryName) {
+                  s.campName = formPrimaryName;
+                  if (elCamp) elCamp.textContent = s.campName || s.campId || '(campaña)';
+                  tryAutofillCampos(formContext, s).then(function(){ resolve(); });
+                  return;
+                }
+                if (primaryAttr) {
+                  var select = '?$select=' + primaryAttr;
+                  window.parent.Xrm.WebApi.retrieveRecord('tema_litogl_tp_campaniasanalitica', s.campId, select).then(function(res){
+                    s.campName = (res && res[primaryAttr]) || '';
+                    if (elCamp) elCamp.textContent = s.campName || s.campId || '(campaña)';
+                    tryAutofillCampos(formContext, s).then(function(){ resolve(); });
+                  }).catch(function(){
+                    if (elCamp) elCamp.textContent = s.campId || '(campaña)';
+                    tryAutofillCampos(formContext, s).then(function(){ resolve(); });
+                  });
+                } else {
+                  if (elCamp) elCamp.textContent = s.campId || '(campaña)';
+                  tryAutofillCampos(formContext, s).then(function(){ resolve(); });
+                }
+              });
+            } else {
+              if (elCamp) elCamp.textContent = s.campId || '(campaña)';
+              resolve();
+            }
+          } catch (e) {
+            console.warn('bootstrapContext error', e);
+            resolve();
+          }
+        });
+      },
+
+      refresh: function(){
+        var s = RecipientsGrid.state;
+        if (!s.campId || !RecipientsGrid.hasWebApi()) {
+          RecipientsGrid.setStatus('No hay campaña en contexto o API no disponible.');
+          RecipientsGrid.renderRecipients([]);
+          return;
+        }
+
+        RecipientsGrid.setStatus('Cargando equipo de campaña...');
+        RecipientsGrid.obtenerMiembrosEquipoPorRoles(s.campId, RecipientsGrid.tokensRol).then(function(users){
+          s.recipients = users || [];
+          RecipientsGrid.renderRecipients(s.recipients);
+          RecipientsGrid.setStatus('');
+        }).catch(function(){
+          RecipientsGrid.renderRecipients([]);
+          RecipientsGrid.setStatus('No fue posible cargar el equipo.');
+        });
+      },
+
+      renderRecipients: function(users){
+        var body = document.getElementById('recipientsBody');
+        if (!body) return;
+        body.innerHTML = '';
+        if (!users || users.length === 0) {
+          var tr = document.createElement('tr');
+          var td = document.createElement('td');
+          td.colSpan = 4;
+          td.className = 'table-empty';
+          td.textContent = 'No hay miembros disponibles para los roles especificados.';
+          tr.appendChild(td);
+          body.appendChild(tr);
+          return;
+        }
+        var currentId = (RecipientsGrid.state.currentUserId||'').toLowerCase();
+        users.forEach(function(u){
+          var tr = document.createElement('tr');
+          var tdCheck = document.createElement('td');
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'checkbox';
+          cb.dataset.uid = u.systemuserid;
+          // preseleccionar excepto el usuario actual
+          cb.checked = (u.systemuserid||'').toLowerCase() !== currentId;
+          tdCheck.appendChild(cb);
+
+          var tdName = document.createElement('td'); tdName.textContent = u.fullname || '';
+          var tdMail = document.createElement('td'); tdMail.textContent = u.internalemailaddress || '';
+          var tdTeam = document.createElement('td'); tdTeam.textContent = u.__teamname || '';
+
+          tr.appendChild(tdCheck);
+          tr.appendChild(tdName);
+          tr.appendChild(tdMail);
+          tr.appendChild(tdTeam);
+          body.appendChild(tr);
+        });
+      },
+
+      sendEmail: function(){
+        var table = document.getElementById('recipientsGrid');
+        if (!table) return;
+        var checked = Array.prototype.slice.call(table.querySelectorAll('input[type="checkbox"]:checked'));
+        var ids = checked.map(function(cb){ return cb.dataset.uid; }).filter(Boolean);
+        var selectedUsers = RecipientsGrid.state.recipients.filter(function(u){ return ids.indexOf(u.systemuserid) >= 0; });
+        if (selectedUsers.length === 0) {
+          RecipientsGrid.setStatus('Seleccione al menos un destinatario.');
+          return;
+        }
+
+        var s = RecipientsGrid.state;
+        var subject = 'Incidencia registrada en campaña ' + (s.campName || s.campId || '');
+        if (s.etapaNombre) subject += ' - Etapa ' + s.etapaNombre;
+        var description = [
+          'Campaña: ' + (s.campName || s.campId || ''),
+          'Etapa: ' + (s.etapaNombre || ''),
+          'Incidencia: ' + (s.incidenciaNombreCorto || ''),
+          'Detalle:\n' + (s.incidenciaDetalle || '')
+        ].join('\n');
+
+        RecipientsGrid.setStatus('Enviando correo...');
+        RecipientsGrid.crearYEnviarEmailMultiple(subject, description, selectedUsers).then(function(){
+          RecipientsGrid.setStatus('Correo enviado.');
+        }).catch(function(e){
+          console.warn('Error al enviar correo', e);
+          RecipientsGrid.setStatus('Error al enviar correo');
+        });
+      },
+
+      obtenerMiembrosEquipoPorRoles: function(campaignId, roleNameTokens){
+        return new Promise(function(resolve){
+          try {
+            var tokens = (roleNameTokens || []).map(function(t){ return (t||'').toLowerCase(); });
+            var query = "?$select=name,teamid,tema_litogl_te_op_rolcampania&$filter=_tema_litogl_te_bu_campania_value eq " + campaignId + "&$expand=teammembership_association($select=fullname,internalemailaddress,systemuserid)";
+            window.parent.Xrm.WebApi.retrieveMultipleRecords('team', query).then(function(res){
+              var usersMap = {};
+              (res.entities || []).forEach(function(team){
+                var teamName = (team.name || '').toLowerCase();
+                var matchByName = tokens.some(function(tok){ return teamName.indexOf(tok) >= 0; });
+                if (matchByName) {
+                  var members = team['teammembership_association'] || [];
+                  members.forEach(function(u){
+                    var uid = (u.systemuserid || '').toLowerCase();
+                    if (!uid) return;
+                    usersMap[uid] = {
+                      systemuserid: u.systemuserid,
+                      fullname: u.fullname,
+                      internalemailaddress: u.internalemailaddress,
+                      __teamname: team.name || ''
+                    };
+                  });
+                }
+              });
+              var users = Object.keys(usersMap).map(function(k){ return usersMap[k]; }).filter(function(u){ return !!u.internalemailaddress; });
+              resolve(users);
+            }).catch(function(){ resolve([]); });
+          } catch (e) {
+            console.warn('obtenerMiembrosEquipoPorRoles error', e);
+            resolve([]);
+          }
+        });
+      },
+
+      crearYEnviarEmailMultiple: function(subject, description, recipientsSystemUsers){
+        return new Promise(function(resolve, reject){
+          try {
+            var activity = { subject: subject, description: description, directioncode: true };
+            window.parent.Xrm.WebApi.createRecord('email', activity).then(function(createRes){
+              var emailId = createRes.id;
+              var addParties = (recipientsSystemUsers || []).map(function(u){
+                var toActivityParty = {
+                  'partyid_systemuser@odata.bind': '/systemusers(' + u.systemuserid + ')',
+                  participationtypemask: 2,
+                  'activityid_email@odata.bind': '/emails(' + emailId + ')'
+                };
+                return window.parent.Xrm.WebApi.createRecord('activityparty', toActivityParty);
+              });
+              Promise.all(addParties).then(function(){
+                var req = new XMLHttpRequest();
+                req.open('POST', window.parent.Xrm.Utility.getGlobalContext().getClientUrl() + '/api/data/v9.2/SendEmail');
+                req.setRequestHeader('OData-MaxVersion', '4.0');
+                req.setRequestHeader('OData-Version', '4.0');
+                req.setRequestHeader('Accept', 'application/json');
+                req.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                var body = { EmailId: emailId, IssueSend: true, TrackingToken: '' };
+                req.onreadystatechange = function(){
+                  if (this.readyState === 4) {
+                    req.onreadystatechange = null;
+                    if (this.status >= 200 && this.status < 300) {
+                      resolve();
+                    } else {
+                      reject(this.responseText);
+                    }
+                  }
+                };
+                req.send(JSON.stringify(body));
+              });
+            });
+          } catch (e) {
+            reject(e);
+          }
+        });
+      },
+
+      // Utiles
+      stripGuid: function(v){ return String(v||'').replace(/[{}]/g, ''); },
+      hasWebApi: function(){ return !!(window.parent && window.parent.Xrm && window.parent.Xrm.WebApi); },
+
+      obtenerCampaniaId: function(formContext){
+        try {
+          // 1) Intentar desde atributo/lookup en el formulario
+          var campoLookup = RecipientsGrid.leerAttr(formContext, 'tema_litogl_tr_cp_id_campana_incidencia') 
+            || RecipientsGrid.leerAttr(formContext, 'tema_litogl_tp_bu_idcampania') 
+            || RecipientsGrid.leerAttr(formContext, 'tema_litogl_tp_bu_campania');
+          if (campoLookup && campoLookup[0] && campoLookup[0].id) return RecipientsGrid.stripGuid(campoLookup[0].id);
+
+          // 2) Intentar desde el id del formulario (si estamos en campaña)
+          if (formContext && formContext.data && formContext.data.entity && formContext.data.entity.getId) {
+            var id = formContext.data.entity.getId();
+            if (id) return RecipientsGrid.stripGuid(id);
+          }
+
+          // 3) Intentar sessionStorage (cache) con claves conocidas
+          var keys = Object.keys(sessionStorage || {}).filter(function(k){ return /^campania:[a-f0-9\-]+:(proyectoId|laboratorioId)$/.test(k); });
+          if (keys.length) {
+            // Tomar el primer campId visto en cache
+            var m = keys[0].match(/^campania:([a-f0-9\-]+):/);
+            if (m && m[1]) return m[1];
+          }
+        } catch (e) {}
+        return null;
+      },
+
+      leerAttr: function(formContext, schemaName){
+        try {
+          var a = formContext && formContext.getAttribute ? formContext.getAttribute(schemaName) : null;
+          if (!a) return null;
+          return a.getValue();
+        } catch (e) { return null; }
+      }
+    };
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function(){ RecipientsGrid.init(); });
+  })();
+  </script>
+</body>
+</html>
