@@ -18,7 +18,18 @@
     childWhitelist: {
       'tema_litoglcampanaequipo': true,
       'tema_litoglcampanapaquetes': true
-    }
+    },
+    // Campos URL en campaña que deben quedar en blanco al crear (serán rellenados por Power Automate)
+    urlFieldsCampaign: [
+      'tema_litogl_tc_txt_carpeta_campana',
+      'tema_litogl_tp_txt_constancia_pedido',
+      'tema_litogl_tp_txt_evidencias_campo',
+      'tema_litogl_tp_txt_factura',
+      'tema_litogl_tp_txt_infensayo',
+      'tema_litogl_tp_txt_proforma',
+      'tema_litogl_tp_txt_receplab',
+      'tema_litogl_tp_txt_url_laboratorio'
+    ]
   };
 
   // API utilitario
@@ -107,6 +118,12 @@
       MetadataCache.targetSetName[targetLogicalName] = def.EntitySetName;
       return def.EntitySetName;
     });
+  }
+
+  // Formatear timestamp a YYYY-MM-DD-HH-MM-SS
+  function formatDateToTimestamp(d){
+    function pad(n){ return n < 10 ? ('0'+n) : ''+n; }
+    return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + '-' + pad(d.getMinutes()) + '-' + pad(d.getSeconds());
   }
 
   // Construye lista de campos seleccionables para retrieveRecord
@@ -342,23 +359,26 @@
         // Lectura sin $select para evitar errores por columnas no direccionables
         return Xrm.WebApi.retrieveRecord(ENTITY_CAMPAÑA, oldId).then(function(rec){
           return buildCreatePayload(ENTITY_CAMPAÑA, def, rec).then(function(payload){
+            // Inyectar timestamp en el NOMBRE de campaña ANTES de crear (para que lo lea el flujo)
+            try {
+              var baseNombre = rec && rec["tema_litogl_tp_txt_nombrecampania"];
+              var ts = formatDateToTimestamp(new Date());
+              payload["tema_litogl_tp_txt_nombrecampania"] = (baseNombre ? (baseNombre + '-' + ts) : ts);
+            } catch(e) {}
+
+            // Limpiar campos de tipo URL en la campaña para que el flujo los rellene
+            try {
+              var urls = (CONFIG && CONFIG.urlFieldsCampaign) || [];
+              urls.forEach(function(f){ payload[f] = null; });
+            } catch(e) {}
+
             return createRecordTolerant(ENTITY_CAMPAÑA, payload).then(function(createRes){
               var newId = createRes.id;
-              // Añadir sufijo " CLO" al ID Campaña autogenerado
-              return Xrm.WebApi.retrieveRecord(ENTITY_CAMPAÑA, newId, "?$select=tema_litogl_tp_cp_idcampania").then(function(nuevo){
-                var codigo = nuevo && nuevo["tema_litogl_tp_cp_idcampania"];
-                var actualizado = (codigo ? (codigo + ' CLO') : null);
-                var promUpdate = actualizado
-                  ? Xrm.WebApi.updateRecord(ENTITY_CAMPAÑA, newId, { "tema_litogl_tp_cp_idcampania": actualizado })
-                  : Promise.resolve();
-                return promUpdate.then(function(){
-                  return cloneChildrenRecursively(ENTITY_CAMPAÑA, oldId, newId, {}).then(function(){
-                    Api.hideProgress();
-                    // Refrescar el grid para que se vea la campaña clonada de inmediato
-                    Api.refreshGrid(primaryControl);
-                    Api.alert('✅ Clonación completada. Se creó una nueva campaña y sus registros relacionados fueron duplicados.');
-                  });
-                });
+              return cloneChildrenRecursively(ENTITY_CAMPAÑA, oldId, newId, {}).then(function(){
+                Api.hideProgress();
+                // Refrescar el grid para que se vea la campaña clonada de inmediato
+                Api.refreshGrid(primaryControl);
+                Api.alert('✅ Clonación completada. Se creó una nueva campaña y sus registros relacionados fueron duplicados.');
               });
             });
           });
